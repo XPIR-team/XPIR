@@ -1,0 +1,88 @@
+#/* Copyright (C) 2014 Carlos Aguilar Melchor, Joris Barrier, Marc-Olivier Killijian
+# * This file is part of XPIRe.
+# *
+# *  XPIRe is free software: you can redistribute it and/or modify
+# *	it under the terms of the GNU General Public License as published by
+# *  the Free Software Foundation, either version 3 of the License, or
+# *  (at your option) any later version.
+# *
+# *  XPIRe is distributed in the hope that it will be useful,
+# *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+# *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# *  GNU General Public License for more details.
+# *
+# *  You should have received a copy of the GNU General Public License
+# *  along with XPIRe.  If not, see <http://www.gnu.org/licenses/>.
+#*/
+
+include ../common.mk
+include ../per_user.mk
+
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+CC=g++ -std=gnu++0x -mtune=arch -march=arch -Wa,-q
+LDLIBS=gcc gmp mpfr boost_program_options-mt boost_thread-mt \
+       boost_system-mt  pthread
+CFLAGS = -DOSX 
+else
+CC=g++ -std=gnu++0x 
+LDLIBS=mpfr gmp boost_system boost_program_options boost_thread \
+       gcov
+endif
+
+LDFLAGS +=  $(foreach dir,$(local_libpath),-L$(dir) )  \
+$(foreach lib, $(LDLIBS), -l$(lib)) \
+	-fopenmp \
+	$(foreach dir,$(local_libpath),-Wl,-rpath $(dir) )  \
+ 
+
+ifeq ($(DEBUG), 1)
+CFLAGS += -ggdb -DDEBUG
+else
+CFLAGS += -Ofast 
+#CFLAGS += -fprofile-use #-fbranch-target-load-optimize2
+#CFLAGS += -fprofile-generate #-fbranch-target-load-optimize2
+endif
+CFLAGS += -fopenmp  $(foreach dir, $(local_includes), -I $(dir))
+
+UNAME := $(shell uname)
+
+
+
+SRC_DIR  = $(addprefix src/,$(MODULES))
+BUILD_DIR= $(addprefix build/,$(MODULES))
+
+SRC	= $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.cpp $(sdir)/*.s))
+OBJ	= $(patsubst src/%.cpp,build/%.o,$(SRC))
+#INCLUDES= $(addprefix -I,$(SRC_DIR))
+INCLUDES= $(addprefix -I,)
+
+
+vpath %.cpp $(SRC_DIR)
+
+define make-goal
+$1/%.o: %.cpp
+	$(CC) -c $$< -o $$@ $(CFLAGS)
+endef
+
+all:	checkdirs build/$(EXEC)
+
+build/$(EXEC): $(OBJ)
+	$(CC) $^ -o $@ $(LDFLAGS) 
+
+checkdirs: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	@mkdir -p $@
+
+clean:
+	@rm -rf build/*
+
+graph:
+	@bash plot_exp.sh
+
+install:
+	@mkdir reception
+
+$(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
