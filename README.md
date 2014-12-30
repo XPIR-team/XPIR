@@ -17,11 +17,16 @@
 
 XPIRe allows a user to privately download an element from a database. This means that the database server knows that she has sent a database element to the user but does not know which one. The scientific term for the underlying protocol is Private Information Retrieval (PIR). This library is described and studied in the paper:
 
-Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIRe: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprints.iacr.org/XXX.
+Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIRe: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprints.iacr.org/.
 
 If you use our library, or a sub-part, such a NFLlib, please cite this paper on your work.
 
-This project is closely related to another project available at GitHub: NFLlib. The NTT-based Fast Lattice library, which allows fast cryptographic computations over ideal lattices. Adapting this project to a more recent version of NFLlib would provide a performance boost but would be a lot of work so we are not planning to do it immediately. 
+This project is closely related to another project available (soon?) at GitHub: NFLlib. The NTT-based Fast Lattice library, which allows fast cryptographic computations over ideal lattices. Adapting this project to a more recent version of NFLlib would provide a performance boost but would be a lot of work so we are not planning to do it immediately. 
+
+*Important Note 1*: For publication issues, a small part of the code is missing. From a technical point of view this correspond to the gaussian noise generator for LWE which is replaced by a uniform noise generator until some scientific results are published. Replacing our uniform noise generator with our gaussian noise generator does not impact performance in an observable way.
+
+
+*Important Note 2*: This software cannot provide reliable privacy without more scrutiny on many details. We have tried to provide some resiliance to timing tests, but haven't tested them thoroughly. The random seed generation and pseudorandom generation use strong functions but we haven't done a thorough analysis of whether an idiotic fault is present in those critical sections of the code or not. No input verification is done by the server or client so many buffer overflows are potentially possible, etc. As is, the software *shows that privacy is possible* but cannot guarantee it for now.
 
 
 Installation:
@@ -30,8 +35,8 @@ Installation:
 Requirements : g++>=4.8, gcc>=4.8, 64-bit Linux OS (Mac OSX should be supported soon).
 
 Get a copy of the project with:
-- git clone XXXXXXXXX
-- or by downloading from http://www.github.com/XXXXXXXX
+- git clone git@github.com:carlosaguilarmelchor/XPIRe.git
+- or by downloading from https://github.com/carlosaguilarmelchor/XPIRe/archive/master.zip
 
 Then execute the following commands to compile everything (boost, gmp, mpfr, create essential files, build client and server):
 $ cd xpire
@@ -69,7 +74,7 @@ Print a help message with the different options.
 Server-driven mode. This mode is to be used when multiple clients will connect to the server with the same cryptographic and PIR parameters. This allows the server to import the database into RAM and to perform precomputations over the database for the first client which *significantly increases the performance for the following clients if LWE-based cryptography is used*. The first client will ask for a given configuration (depending on its optimizer and on the command-line constraints given to the client). After this configuration client, the server will tell the following clients that he is in server-driven mode and that the configuration is imposed. The configuration given by the first client is stored in file arg or in exp/PIRParams.cfg if arg is not specified for further usage (see -L option).
 
 -L, --load_file arg 
-Load cryptographic and PIR parameters from arg file. Currently unavailable (see issue XXXXXXXXX).
+Load cryptographic and PIR parameters from arg file. Currently unavailable (see issues).
 
 -s, --split_file arg (=1)
 Only use first file in db directory and split it in arg database elements. This allows to have a large database with many fixed size elements (e.g. bits, bytes, 24-bit depth points) into a single file which is much more efficient from a file-system point of view than having many small files. Building databases from a single file with more complex approaches (e.g. csv, or sqlite files) would be a great feature to add to XPIRe.
