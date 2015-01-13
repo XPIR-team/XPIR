@@ -21,7 +21,7 @@ include ../per_user.mk
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Darwin)
-CC=g++ -std=gnu++0x -mavx -Wa,-q
+CC=g++ -std=gnu++0x -march=native -mtune=native -mfpmath=sse -Wa,-q
 LDLIBS=gcc gmp mpfr boost_program_options boost_thread \
        boost_system  pthread
 CFLAGS = -DOSX 
