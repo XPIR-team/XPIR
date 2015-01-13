@@ -209,7 +209,7 @@ void PIRReplyGeneratorGMP::generateReplyGenericFromData(const database_t databas
 void PIRReplyGeneratorGMP::generateReply() 
 {
 	uint64_t pir_nbr;
-	float start; 
+	double start;
 
 	mpz_t **data_z = datae;
 	mpz_t **reply_vec;
