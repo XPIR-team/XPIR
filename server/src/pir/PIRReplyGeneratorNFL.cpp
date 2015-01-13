@@ -743,10 +743,23 @@ void PIRReplyGeneratorNFL::pushQuery(char* rawQuery, unsigned int size, int dim,
 
 size_t PIRReplyGeneratorNFL::getTotalSystemMemory()
 {
-    long pages = /*get_phys_pages();*/sysconf(_SC_PHYS_PAGES);
-    long page_size = /*getpagesize();*/sysconf(_SC_PAGE_SIZE);
-    return pages * page_size;
-    //return getMemorySize( );
+#ifdef OSX
+  int m[2];
+  m[0] = CTL_HW;
+  m[1] = HW_MEMSIZE;
+
+  int64_t size = 0;               
+  size_t len = sizeof( size );
+
+  sysctl( m, 2, &size, &len, NULL, 0 );
+    
+  return (size_t)size;
+
+#else
+  long pages = /*get_phys_pages();*/sysconf(_SC_PHYS_PAGES);
+  long page_size = /*getpagesize();*/sysconf(_SC_PAGE_SIZE);
+  return pages * page_size;
+#endif
 }
 
 PIRReplyGeneratorNFL::~PIRReplyGeneratorNFL()

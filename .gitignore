@@ -94,5 +94,8 @@ dependencies/gmp-5.1.1/stamp-h1
 dependencies/gmp-5.1.1/trialdivtab.h
 dependencies/gmp-5.1.1/tune/sqr_basecase.c
 dependencies/mpfr-3.1.2/src/mparam.h
-dependencies/boost/tools/build/v2/engine/bin.linuxx86_64/bjam
-
+dependencies/boost/tools/build/v2/engine/*/b2
+dependencies/boost/bjam
+dependencies/boost/b2
+dependencies/boost/project-config.*
+dependencies/boost/bin.v2/project-cache.jam
