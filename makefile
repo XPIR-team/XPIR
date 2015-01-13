@@ -43,7 +43,7 @@ database:
 	@echo "\n\n"
 per_user.mk:
 	@echo "#############################################"
-	@echo "Ensuring common.mk exists server..."
+	@echo "Ensuring per_user.mk exists..."
 	@echo "#############################################"
 	@if [ ! -f per_user.mk ]; then touch per_user.mk; fi 
 	@echo "\n\n"
