@@ -27,7 +27,7 @@ Get a copy of the project with:
 
 Then execute the following commands to compile everything (boost, gmp, mpfr, create essential files, build client and server):
 ```
-$ cd xpire
+$ cd XPIRe
 $ make
 ```
 
