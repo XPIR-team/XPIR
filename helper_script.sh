@@ -25,7 +25,7 @@ fi
 
 if [ $1 = "gmp" ] && [ -d dependencies/gmp-5.1.1 ]
 then
-  cd dependencies/gmp-5.1.1 && $CONFIGURE && make && make check && make install
+  cd dependencies/gmp-6.0.0 && $CONFIGURE && make && make check && make install
   exit $?
 fi
                             
