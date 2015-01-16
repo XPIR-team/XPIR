@@ -41,6 +41,7 @@ PIRReplyGeneratorNFL::PIRReplyGeneratorNFL():
  **/
 PIRReplyGeneratorNFL::PIRReplyGeneratorNFL(vector <string>& database_, PIRParameters& param, DBHandler* db):
   lwe(false),
+  currentMaxNbPolys(1),
   GenericPIRReplyGenerator(database_, param,db)
 {
   // cryptoMethod will be set later by setCryptoMethod
@@ -442,7 +443,6 @@ double PIRReplyGeneratorNFL::generateReplySimulation(const PIRParameters& pir_pa
 double PIRReplyGeneratorNFL::precomputationSimulation(const PIRParameters& pir_params, uint64_t plaintext_nbr)
 {
   NFLlib *nflptr = &(cryptoMethod->getnflInstance());
-
   setPirParams((PIRParameters&)pir_params);
   initQueriesBuffer();
   pushFakeQuery();
@@ -461,7 +461,7 @@ double PIRReplyGeneratorNFL::precomputationSimulation(const PIRParameters& pir_p
     }
   }
   double result = omp_get_wtime() - start;
-
+  std::cout << "PIRReplyGeneratorNFL: Deserialize took " << result << " (omp)seconds" << std::endl;
   freeFakeInputData();
   freeQuery();
   freeResult();
@@ -557,7 +557,7 @@ lwe_cipher* result)
       if (vtstop - vtstart > 1) 
       {
         vtstart = vtstop;
-        if(maxChunkSize != 1) std::cout <<"PIRReplyGeneratorNFL: Dealt with chunk " << 
+        if(currentMaxNbPolys != 1) std::cout <<"PIRReplyGeneratorNFL: Dealt with chunk " << 
           current_poly+1 << "/" << currentMaxNbPolys << "\r" << std::flush;
         wasVerbose = true;
       }

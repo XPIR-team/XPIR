@@ -131,9 +131,8 @@ void PIRReplyGeneratorGMP::clearFakeData(uint64_t plaintext_nbr)
     {
       mpz_clear(datae[i][j]);
     }
-    free(datae[i]);
   }
-  free(datae);
+  delete[] datae;
 }
 
 double PIRReplyGeneratorGMP::generateReplySimulation(const PIRParameters& pir_params, uint64_t plaintext_nbr)
@@ -470,7 +469,7 @@ void PIRReplyGeneratorGMP::freeResult()
 {
   for(unsigned i=0 ; i < repliesAmount; i++)
   {
-    if(repliesArray[i]!=NULL) free(repliesArray[i]);
+    if(repliesArray[i]!=NULL) delete[] repliesArray[i];
     repliesArray[i] = NULL;
   }
   free(repliesArray);

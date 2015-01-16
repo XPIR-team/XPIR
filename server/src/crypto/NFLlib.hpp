@@ -75,7 +75,8 @@ template <size_t Align, class T>
 static inline T* malloc_align(const size_t n)
 {
        T* ret;
-       posix_memalign((void**) &ret, Align, n*sizeof(T));
+       if(posix_memalign((void**) &ret, Align, n*sizeof(T)))
+         std::cout << "NFLlib: WARNING posix_memalign failed" << std::endl;
        return ret;
 }
 
@@ -219,6 +220,11 @@ class NFLlib
         uint64_t bitsPerBuffer, unsigned int bitsPerChunk);
     void internalLongIntegersToCRT(uint64_t* tmpdata, poly64 outdata, uint64_t int_uint64PerChunk,
         uint64_t totalNbChunks) ;
+    void bs_finish(poly64 &outdata, uint64_t int_uint64PerChunk, uint64_t polyNumber, 
+        uint64_t *splitData, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk);
+    void bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffers, 
+        uint64_t bitsPerBuffer, unsigned int bitsPerChunk, uint64_t *&tmpdata, 
+        uint64_t bufferIndex, uint64_t &bitsread, size_t &subchunkIndex);
     uint64_t* bitsplitter_backtoback_internal_test (unsigned char** inDataBuffers, 
         uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk, 
         uint64_t totalbitsread,uint64_t bitsread, uint64_t* pointer64, unsigned int bitsToRead);

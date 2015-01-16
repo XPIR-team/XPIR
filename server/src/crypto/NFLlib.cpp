@@ -665,46 +665,22 @@ uint64_t* NFLlib::bitsplitter_backtoback_internal_test (unsigned char** inDataBu
   return 0;
 }
 
-// This function does all the hard work of deserializeDataNFL
-// 1) Converts input into a set of polynomials with arbitrary large coefficients
-// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients 
-// Do not try to understand it, it is a nightmare, we won't try to explain it :)
-uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk)
+inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk, uint64_t *&tmpdata, uint64_t bufferIndex, uint64_t &bitsread, size_t &subchunkIndex)
 {
-  // If you don't need to change me don't try to understand me
-  // If you need to change me, build me again from scratch :)
-#ifdef DEBUG_BITSPLIT
-  uint64_t totalbitsread=0;
-#endif
-  double nbChunks = (double)bitsPerBuffer/(double)bitsPerChunk; // Nb of tuples we will extract (1 per nbModuli)
+  // We redefine the amount of uint64 that can be produced given that we may have already read
+  uint64_t bitstoread = bitsPerBuffer - bitsread;
+  double nbChunks = (double)(bitsPerBuffer-bitsread)/bitsPerChunk;
   uint64_t int_nbChunks = floor(nbChunks);
-  
+
+  // How many uint64_t are needed to encode a chunk
   const double uint64PerChunk = (double)bitsPerChunk/56;
   const uint64_t int_uint64PerChunk = ceil(uint64PerChunk);
   const bool  isint_uint64PerChunk = (uint64PerChunk==(double)int_uint64PerChunk);
   
-  uint64_t supplementalSubchunks = (bitsPerBuffer-int_nbChunks*bitsPerChunk)/56;
-      uint64_t cumulatedsize = supplementalSubchunks*56;
-  uint64_t totalSubChunks=int_nbChunks*int_uint64PerChunk+supplementalSubchunks;
-  
-#ifdef DEBUG_BITSPLIT
-  std::cout<<"bitsplit0 nbrOfBuffers="<<nbrOfBuffers<<std::endl;
-  std::cout<<"bitsplit0 nbChunks="<<nbChunks<<std::endl;
-  std::cout<<"bitsplit0 int_nbChunks="<<int_nbChunks<<std::endl;
-  std::cout<<"bitsplit0 uint64PerChunk="<<uint64PerChunk<<std::endl;
-  std::cout<<"bitsplit0 int_uint64PerChunk="<<int_uint64PerChunk<<std::endl;
-  std::cout<<"bitsplit0 isint_uint64PerChunk="<<isint_uint64PerChunk<<std::endl;
-  std::cout<<"bitsplit0 totalSubChunks="<<totalSubChunks<<std::endl;
-#endif
-
-  unsigned  char *tmppointer;
-  uint64_t *pointer64;
-  pointer64 = (uint64_t *) inDataBuffers[0];
-  uint64_t bitsread=0, bitsremaining=0; 
-
+  // Compute subchunk sizes and masks
   uint64_t subchunkMasks[int_uint64PerChunk];
-  
-  unsigned int subchunkIndex = 0;// Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk) and use subchunkSizes[subchunkIndex]; 
+  // Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk) and 
+  // use subchunkSizes[subchunkIndex]; 
   unsigned int subchunkSizes[int_uint64PerChunk];
   for (unsigned i = 0 ; i < int_uint64PerChunk - 1 ; i++)
   {
@@ -718,130 +694,119 @@ uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuff
 
   for (int i = 0 ; i < int_uint64PerChunk ; i++)
   {
-    std::cout<<"bitsplit0 i="<<i<<std::endl;
-    std::cout<<"bitsplit0 subchunkSizes[i]="<<subchunkSizes[i]<<std::endl;
-    std::cout<<"bitsplit0 subchunkMasks[i]="<<subchunkMasks[i]<<std::endl;
+    std::cerr<<"bitsplit0 i="<<i<<std::endl;
+    std::cerr<<"bitsplit0 subchunkSizes[i]="<<subchunkSizes[i]<<std::endl;
+    std::cerr<<"bitsplit0 subchunkMasks[i]="<<subchunkMasks[i]<<std::endl;
   }
 #endif
 
-  uint64_t polyNumber = ceil((double)bitsPerBuffer*(double)nbrOfBuffers/(double)(bitsPerChunk*polyDegree));
-
-  uint64_t* splitData=(uint64_t*)(calloc(polyNumber*polyDegree*int_uint64PerChunk+1,sizeof(uint64_t)));
-  uint64_t* tmpdata=splitData;
-  
-  
-    // Loop over the buffers
-  for (uint64_t h = 0 ; h < nbrOfBuffers ; h++)
-  { 
-    // We deal with the uint64_t in tmpdata that can be filled completely with the current buffer bits
-    // We can use a 'while' here.
-    
-      // Loop over the subchunks in the current buffer
-    for (uint64_t i = 0 ; i < totalSubChunks ; )
+  // We compute how many extra subchunks are available taking into account that we may
+  // start this new buffer on the middle of a chunk
+  uint64_t supplementalSubchunks = 0;
+  uint64_t cumulatedsize = 0;
+  for (unsigned i = 0 ; i < int_uint64PerChunk ; i++)
+  {
+    if (cumulatedsize + subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk] <= (bitsPerBuffer-bitsread)-int_nbChunks*bitsPerChunk)        
     {
-      // Get up to 64bits
-      while (bitsread + subchunkSizes[subchunkIndex] <= 64)
-      {
-        *tmpdata = ((*pointer64)>>bitsread) & subchunkMasks[subchunkIndex];
-B2BTEST(inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk, totalbitsread, bitsread, pointer64,subchunkSizes[subchunkIndex]);
-#ifdef DEBUG_BITSPLIT
-      totalbitsread+=subchunkSizes[subchunkIndex];
-#endif
-        tmpdata++;i++;
-        bitsread += subchunkSizes[subchunkIndex];
-        subchunkIndex= (subchunkIndex+1 == int_uint64PerChunk ? 0 : subchunkIndex + 1);
-        if(i==totalSubChunks) break;
-      }
-      
-      tmppointer = (unsigned char*) pointer64;
-      tmppointer += bitsread>>3;
-      pointer64 = (uint64_t *) (tmppointer);
-
-      bitsread -= (bitsread>>3)<<3;
-    }
-
-    // If there is a last partial subchunk in this buffer, read it part from this buffer and part 
-    // from next buffer if available
-    bitsremaining = (uint64_t) round((nbChunks-int_nbChunks)*bitsPerChunk - cumulatedsize );
-#ifdef DEBUG_BITSPLIT
-    std::cout<<"bitsplit2 bitsremaining (should be <56)="<<bitsremaining<<std::endl;
-#endif
-    if (bitsremaining !=0) 
-    {
-      *tmpdata = ((*pointer64)>>bitsread) & ((1ULL<<bitsremaining)-1);
-B2BTEST(inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk, totalbitsread, bitsread, pointer64, bitsremaining);
-#ifdef DEBUG_BITSPLIT
-      totalbitsread+=bitsremaining;
-#endif
-      // If there is another buffer to deal with, finish the current tmpdata uint64_t 
-      if (h < nbrOfBuffers - 1)  
-      {
-        pointer64 = (uint64_t *) inDataBuffers[h+1];
-        *tmpdata |= ((*pointer64)<<bitsremaining) & subchunkMasks[subchunkIndex];
-#ifdef DEBUG_BITSPLIT
-      totalbitsread-=bitsremaining;
-      totalbitsread+=subchunkSizes[subchunkIndex];
-#endif
-        // We restart bitsread to the bits read in the new buffer
-        bitsread = subchunkSizes[subchunkIndex] - bitsremaining;  
-        subchunkIndex= (subchunkIndex+1 == int_uint64PerChunk ? 0 : subchunkIndex + 1);
-        tmpdata++;
-      }
+      supplementalSubchunks++;
+      cumulatedsize += subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk];
     }
     else
     {
-      if (h < nbrOfBuffers - 1) pointer64 = (uint64_t *) inDataBuffers[h+1];
-      bitsread = 0;
-    }
-
-    // If there is another buffer to deal with, reset counters 
-    if (h < nbrOfBuffers - 1)  
-    {
-      // We redefine the amount of uint64 that can be produced given that we may have already read
-      nbChunks = (double)(bitsPerBuffer-bitsread)/bitsPerChunk;
-      int_nbChunks = floor(nbChunks);
-      // We compute how many extra subchunks are available taking into account that we may
-      // start this new buffer on the middle of a chunk
-      supplementalSubchunks = 0;
-      cumulatedsize = 0;
-      for (unsigned i = 0 ; i < int_uint64PerChunk ; i++)
-      {
-        // cumulatedsize += subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk];
-        if (cumulatedsize + subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk] <= (bitsPerBuffer-bitsread)-int_nbChunks*bitsPerChunk)        {
-          supplementalSubchunks++;
-          cumulatedsize += subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk];
-        }else{
-          break;}
-      }
-      totalSubChunks=int_nbChunks*int_uint64PerChunk + supplementalSubchunks;
-#ifdef DEBUG_BITSPLIT
-      std::cerr << "TotalSubChunks " << totalSubChunks << std::endl;
-      std::cerr << "cumulatedsize " << cumulatedsize << std::endl;
-      std::cerr << "bitsPerBuffer " << bitsPerBuffer << std::endl;
-      std::cerr << "bitsread " << bitsread << std::endl;
-      std::cerr << "nextsubchunksize " <<  subchunkSizes[(subchunkIndex)]<< std::endl;
-      std::cerr << "nextsubchunk " <<  subchunkIndex<< std::endl;
-#endif
-      bitsremaining=0;
+      break;
     }
   }
+  uint64_t totalSubChunks=int_nbChunks*int_uint64PerChunk + supplementalSubchunks;
 #ifdef DEBUG_BITSPLIT
-  std::cout<<"bitsplit4 totalbitstread="<<totalbitsread<<std::endl;
-  std::cout<<"bitsplit4 tmppointer="<<(uint64_t)tmppointer<<std::endl;
+  std::cerr<<"bitsplit1 nbrOfBuffers="<<nbrOfBuffers<<std::endl;
+  std::cerr<<"bitsplit1 nbChunks="<<nbChunks<<std::endl;
+  std::cerr<<"bitsplit1 int_nbChunks="<<int_nbChunks<<std::endl;
+  std::cerr<<"bitsplit1 uint64PerChunk="<<uint64PerChunk<<std::endl;
+  std::cerr<<"bitsplit1 int_uint64PerChunk="<<int_uint64PerChunk<<std::endl;
+  std::cerr<<"bitsplit1 isint_uint64PerChunk="<<isint_uint64PerChunk<<std::endl;
+  std::cerr<<"bitsplit1 totalSubChunks="<<totalSubChunks<<std::endl;
+  std::cerr<<"bitsplit1 cumulatedsize " << cumulatedsize << std::endl;
+  std::cerr<<"bitsplit1 bitsPerBuffer " << bitsPerBuffer << std::endl;
+  std::cerr<<"bitsplit1 bitsread " << bitsread << std::endl;
+  std::cerr<<"bitsplit1 nextsubchunksize " <<  subchunkSizes[(subchunkIndex)]<< std::endl;
+  std::cerr<<"bitsplit1 nextsubchunk " <<  subchunkIndex<< std::endl;
 #endif
-
-  //#define DEBUG_WITH_FILE_OUTPUT
-
-#ifdef DEBUG_WITH_FILE_OUTPUT
-  //if (nbrOfBuffers != 1) 
-  {
-    std::ofstream file((std::string("output_deserialize_split_") ).c_str(), std::ios::out| std::ios::binary);
-    file.write((char*)savedtmpdata,ceil(polyNumber*polyDegree*int_uint64PerChunk+1)*8);
-    file.close();
-  }
-#endif 
   
-  poly64 outdata;
+  unsigned  char *tmppointer;
+  uint64_t *pointer64;
+  pointer64 = (uint64_t *) inDataBuffers[bufferIndex];
+  uint64_t bitsremaining=0; 
+
+  
+  
+  // Loop over the subchunks in the current buffer
+  for (uint64_t i = 0 ; i < totalSubChunks ; )
+  {
+    // Get up to 64bits
+    while (bitsread + subchunkSizes[subchunkIndex] <= 64)
+    {
+      *tmpdata = ((*pointer64)>>bitsread) & subchunkMasks[subchunkIndex];
+      tmpdata++;i++;
+      bitsread += subchunkSizes[subchunkIndex];
+      subchunkIndex= (subchunkIndex+1 == int_uint64PerChunk ? 0 : subchunkIndex + 1);
+      if(i==totalSubChunks) break;
+    }
+    if (bitstoread > 128)
+    {
+      unsigned shift = bitsread >>3; 
+      tmppointer = (unsigned char*) pointer64;
+      tmppointer += shift;
+      pointer64 = (uint64_t *) (tmppointer);
+      bitstoread-= shift<<3;
+      bitsread -= shift<<3;
+    } 
+    else
+    {
+      tmppointer = (unsigned char*) pointer64;
+      while ((64 - bitsread < subchunkSizes[subchunkIndex]) && bitstoread > 0)
+      {
+        tmppointer++;
+        bitsread -= 8;
+        bitstoread -= 8;
+      }
+      pointer64 = (uint64_t *) (tmppointer);
+    }
+  }
+
+  // If there is a last partial subchunk in this buffer, read it part from this buffer and part 
+  // from next buffer if available
+  bitsremaining = (uint64_t) round((nbChunks-int_nbChunks)*bitsPerChunk - cumulatedsize );
+#ifdef DEBUG_BITSPLIT
+    std::cout<<"bitsplit2 bitsremaining (should be <56)="<<bitsremaining<<std::endl;
+#endif
+  if (bitsremaining !=0) 
+  {
+    size_t shift=(64-(bitsread+bitsremaining))/8;
+    bitsread+=(shift<<3);
+    tmppointer = (unsigned char*) pointer64;
+    tmppointer-=shift; 
+    pointer64 = (uint64_t *) (tmppointer);
+    *tmpdata = ((*pointer64)>>bitsread) & ((1ULL<<bitsremaining)-1);
+    // If there is another buffer to deal with, finish the current tmpdata uint64_t 
+    if (bufferIndex < nbrOfBuffers - 1)  
+    {
+      pointer64 = (uint64_t *) inDataBuffers[bufferIndex+1];
+      *tmpdata |= ((*pointer64)<<bitsremaining) & subchunkMasks[subchunkIndex];
+      // We restart bitsread to the bits read in the new buffer
+      bitsread = subchunkSizes[subchunkIndex] - bitsremaining;  
+      subchunkIndex= (subchunkIndex+1 == int_uint64PerChunk ? 0 : subchunkIndex + 1);
+      tmpdata++;
+    }
+  }
+  else
+  {
+    bitsread = 0;
+  }
+}
+
+
+inline void NFLlib::bs_finish(poly64 &outdata, uint64_t int_uint64PerChunk, uint64_t polyNumber, uint64_t* splitData, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk)
+{
   if(int_uint64PerChunk>1) {
     outdata=(poly64) calloc(polyNumber*nbModuli*polyDegree + 1,sizeof(uint64_t));   
     internalLongIntegersToCRT( splitData, outdata,   int_uint64PerChunk, ceil(((double)bitsPerBuffer*nbrOfBuffers)/bitsPerChunk));
@@ -867,20 +832,45 @@ B2BTEST(inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk, totalbitsread,
       outdata=splitData;
     }
   }
-    
+}
 
-#ifdef DEBUG_WITH_FILE_OUTPUT
-  //if (nbrOfBuffers != 1) 
-  {
-    std::ofstream file((std::string("output_deserialize_crt") ).c_str(), std::ios::out| std::ios::binary);
-    file.write((char*)outdata,ceil(polyNumber*nbModuli*polyDegree)*8);
-    file.close();
+
+// This function does all the hard work of deserializeDataNFL
+// 1) Converts input into a set of polynomials with arbitrary large coefficients
+// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients 
+// Do not try to understand it, it is a nightmare, we won't try to explain it :)
+uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk)
+{
+  // If you don't need to change me don't try to understand me
+  // If you need to change me, build me again from scratch :)
+
+  // How many uint64_t are needed to encode a chunk
+  const double uint64PerChunk = (double)bitsPerChunk/56;
+  const uint64_t int_uint64PerChunk = ceil(uint64PerChunk);
+  // How many polynomials are needed to encode the data
+  uint64_t polyNumber = 
+    ceil((double)bitsPerBuffer*(double)nbrOfBuffers/(double)(bitsPerChunk*polyDegree));
+  uint64_t* splitData =
+    (uint64_t*)(calloc(polyNumber*polyDegree*int_uint64PerChunk+1,sizeof(uint64_t)));
+  uint64_t* tmpdata=splitData;
+
+  uint64_t bitsread=0;
+  size_t subchunkIndex=0;
+  
+  // Loop over the buffers
+  for (uint64_t h = 0 ; h < nbrOfBuffers ; h++)
+  { 
+    bs_loop (inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk, 
+        tmpdata, h, bitsread, subchunkIndex);
   }
-#endif 
+ 
+  poly64 outdata;
+
+  bs_finish(outdata, int_uint64PerChunk, polyNumber, splitData, nbrOfBuffers, bitsPerBuffer, bitsPerChunk);
   
   return outdata;
-  
 }
+
 
 
 // Subroutine for bitsplitter, the daemonic function. This is the function that allows
