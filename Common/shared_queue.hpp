@@ -37,8 +37,7 @@ class shared_queue
 {
 
   public:
-    shared_queue(const std::string& name, unsigned int max);
-    //shared_queue(const std::string& name);
+    shared_queue(const std::string& name, unsigned int max_size=SEM_VALUE_MAX);
     ~shared_queue();
     std::string id;
 
@@ -60,7 +59,7 @@ class shared_queue
 };
 
 template <typename T>
-shared_queue<T>::shared_queue(const std::string& name, unsigned int max_size=SEM_VALUE_MAX):
+shared_queue<T>::shared_queue(const std::string& name, unsigned int max_size):
 #ifdef OSX
   num_stored(open_or_create, string(name + "_num_stored").c_str(), 0, permissions(777)), 
   num_space(open_or_create,  string(name + "_num_space").c_str(), max_size, permissions(777)),
