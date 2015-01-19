@@ -34,6 +34,7 @@
 #include "CryptographicSystem.hpp"
 #include "NFLLWEPublicParameters.hpp"
 #include <string>
+#include <cstddef>
 #include <gmp.h>
 
 class NFLLWE : public LatticesBasedCryptosystem

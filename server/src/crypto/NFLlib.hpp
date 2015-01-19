@@ -53,11 +53,11 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <math.h>
+#include <cstddef>
 #include <gmp.h>
 #include <iostream>
 #include "NFLParams.hpp"
 #include "prng/fastrandombytes.h"
-#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <cassert>

@@ -17,6 +17,7 @@
 
 #ifndef DEF_PAILLIER_STRUCT
 #define DEF_PAILLIER_STRUCT
+#include <cstddef>
 #include <gmp.h>
 
 // Maximum s such that encryption is donne from n^s to n^(s+1)

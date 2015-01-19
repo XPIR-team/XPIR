@@ -17,6 +17,7 @@
 
 #ifndef DEF_ABSTRACTPUBLICPARAMETERS
 #define DEF_ABSTRACTPUBLICPARAMETERS
+#include <cstddef>
 #include <gmp.h>
 #include <string>
 #include <vector>
