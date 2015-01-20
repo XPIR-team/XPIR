@@ -51,6 +51,7 @@ class GenericPIRReplyGenerator
 	boost::mutex mutex;
   char** repliesArray;
   unsigned repliesAmount;
+  unsigned repliesIndex;
 
     GenericPIRReplyGenerator();
     GenericPIRReplyGenerator(vector <std::string>& database_, PIRParameters& param, DBHandler* db);

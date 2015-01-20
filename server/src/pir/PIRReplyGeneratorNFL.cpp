@@ -205,6 +205,10 @@ database_t PIRReplyGeneratorNFL::generateReplyGeneric(bool keep_imported_data)
   database_wrapper.database_ptr = NULL;
   database_wrapper.elements_nbr = 0;
 
+  // Allocate memory for the reply array
+  repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+
   // Don't use more than half of the computer's memory 
   usable_memory = getTotalSystemMemory()/2;
   database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
@@ -252,6 +256,7 @@ database_t PIRReplyGeneratorNFL::generateReplyGeneric(bool keep_imported_data)
   {
     if (nbr_of_iterations > 1) cout << "PIRReplyGeneratorNFL: Iteration " << iteration << endl; 
 
+    repliesIndex = computeReplySizeInChunks(iteration*max_readable_size);
     // Import a chunk of max_readable_size bytes per file with an adapted offset
     importDataNFL(iteration*max_readable_size, max_readable_size);
     if(keep_imported_data && iteration == nbr_of_iterations - 1)  // && added for Perf test but is no harmful
@@ -496,12 +501,6 @@ lwe_cipher* result)
   double vtstart = omp_get_wtime();
 #endif
 
-  if ( lvl == pirParam.d-1) 
-  {
-    repliesArray = (char**)calloc(currentMaxNbPolys,sizeof(char*)); 
-    repliesAmount = currentMaxNbPolys; 
-  }
-
   // In order to parallelize we must ensure replies are somehow ordered 
 	// (see comment at the end of PIRReplyExtraction)
 	//#pragma omp parallel for firstprivate(result,data, lvl, queries)
@@ -548,7 +547,7 @@ lwe_cipher* result)
       if ( lvl == pirParam.d-1 && offset + 200 >= query_size) 
       {
         // Watchout lwe_cipher.a and .b need to be allocated contiguously
-        repliesArray[current_poly] = (char*)result[current_poly].a; 
+        repliesArray[repliesIndex+current_poly] = (char*)result[current_poly].a; 
       }
 
 #ifdef PERFTIMERS

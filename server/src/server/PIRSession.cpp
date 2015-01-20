@@ -533,7 +533,7 @@ void PIRSession::uploadWorker()
     {
       while (generator->repliesArray == NULL || generator->repliesArray[i] == NULL) 
       { 
-        boost::this_thread::yield();
+        boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       }
       ptr = generator->repliesArray[i];
       
