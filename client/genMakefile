@@ -69,7 +69,7 @@ all:	checkdirs build/$(EXEC)
 
 post-build:
 ifeq ($(UNAME), Darwin)
-	$(foreach lib, $(LDLIBS), install_name_tool -change lib$(lib).dylib $(local_libpath)/lib$(lib).dylib  build/PIRClient;)
+	$(foreach lib, $(LDLIBS), install_name_tool -change lib$(lib).dylib $(local_libpath)/lib$(lib).dylib  build/$(EXEC);)
 endif
 
 build/$(EXEC): $(OBJ)
