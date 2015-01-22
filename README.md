@@ -30,7 +30,8 @@ Get a copy of the project with:
 ```
 sudo port install gcc48
 sudo port select gcc mp-gcc48
-```
+sudo port install clang-3.6
+``
 
 Then execute the following commands to compile everything (boost, gmp, mpfr, create essential files, build client and server):
 ```
