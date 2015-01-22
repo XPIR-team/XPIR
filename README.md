@@ -19,11 +19,18 @@ This project is closely related to another project available (soon?) at GitHub: 
 Installation:
 =============
 
-Requirements : g++>=4.8, gcc>=4.8, 64-bit Linux OS (Mac OSX should be supported soon).
+Requirements : g++>=4.8, gcc>=4.8, 64-bit Linux OS, Xcode, Xcode Command Line Tools on OSX.
 
 Get a copy of the project with:
 - git clone git@github.com:XPIRe-team/XPIRe.git
 - or by downloading from https://github.com/XPIRe-team/XPIRe/archive/master.zip
+
+*On OSX only*, execute the following commands:
+ 
+```
+sudo port install gcc48
+sudo port select gcc mp-gcc48
+```
 
 Then execute the following commands to compile everything (boost, gmp, mpfr, create essential files, build client and server):
 ```
