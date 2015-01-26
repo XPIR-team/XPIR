@@ -3,7 +3,7 @@ XPIRe: Private Information Retrieval for Everyone
 
 XPIRe allows a user to privately download an element from a database. This means that the database server knows that she has sent a database element to the user but does not know which one. The scientific term for the underlying protocol is Private Information Retrieval (PIR). This library is described and studied in the paper:
 
-Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIRe: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprints.iacr.org/.
+Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIRe: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprint.iacr.org/2014/1025.
 
 If you use our library, or a sub-part, such a NFLlib, please cite this paper on your work.
 
