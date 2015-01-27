@@ -48,8 +48,6 @@ CFLAGS += -fopenmp  $(foreach dir, $(local_includes), -I $(dir))
 
 UNAME := $(shell uname)
 
-
-
 SRC_DIR  = $(addprefix src/,$(MODULES))
 BUILD_DIR= $(addprefix build/,$(MODULES))
 
@@ -66,10 +64,17 @@ $1/%.o: %.cpp
 	$(CC) -c $$< -o $$@ $(CFLAGS)
 endef
 
+
 all:	checkdirs build/$(EXEC)
+
+post-build:
+ifeq ($(UNAME), Darwin)
+	$(foreach lib, $(LDLIBS), install_name_tool -change lib$(lib).dylib $(local_libpath)/lib$(lib).dylib  build/$(EXEC);)
+endif
 
 build/$(EXEC): $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS) 
+	@$(MAKE) -f genMakefile --no-print-directory post-build
 
 checkdirs: $(BUILD_DIR)
 

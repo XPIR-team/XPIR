@@ -527,7 +527,7 @@ char* NFLLWE::decrypt(char* cipheredData, unsigned int rec_lvl, size_t, size_t)
   // unsigned char* out_data = (unsigned char*) calloc(nbModuli * polyDegree+1, sizeof(uint64_t));
   // nflInstance.serializeData64 (clear_data, out_data, bits_per_coordinate, polyDegree);
 
-  unsigned char* out_data = (unsigned char*) calloc( bits_per_coordinate*polyDegree/64, sizeof(uint64_t));
+  unsigned char* out_data = (unsigned char*) calloc(bits_per_coordinate*polyDegree/64 + 1, sizeof(uint64_t));
   if (nbModuli == 1)
   {
     nflInstance.serializeData64(clear_data, out_data, bits_per_coordinate, ceil((double)bits_per_coordinate/64)* polyDegree);

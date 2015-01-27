@@ -43,10 +43,18 @@ fi
                             
 if [ $1 = "boost" ] && [ -d dependencies/boost ]
 then
+	LOCAL_PATH="$PWD/local/ "
   # Boostrap the build module
-  cd dependencies/boost; ./bootstrap.sh
+  cd dependencies/boost; 
+	./bootstrap.sh
   # Use the resulting bjam to compile everything 
-  ./bjam --prefix=../../local install 
+	./bjam --prefix=$LOCAL_PATH install 
+	#fix linking issue on OSX
+	if [ `uname` == "Darwin" ]
+	then 
+		cd ../../local/lib/
+		install_name_tool -change libboost_system.dylib `pwd`/libboost_system.dylib libboost_thread.dylib
+	fi
   exit $?
 fi
 

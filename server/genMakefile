@@ -27,18 +27,18 @@ LDLIBS=gcc gmp mpfr boost_program_options boost_thread \
 CFLAGS = -DOSX 
 else
 CC=g++ -std=gnu++0x 
-LDLIBS=gmp mpfr boost_system boost_program_options boost_thread \
+LDLIBS=mpfr gmp boost_system boost_program_options boost_thread \
        gcov
 endif
 
-LDFLAGS +=  $(foreach dir,$(local_libpath),-L$(dir) )  \
+LDFLAGS +=  -L../dependencies/boost $(foreach dir,$(local_libpath),-L$(dir) )  \
 $(foreach lib, $(LDLIBS), -l$(lib)) \
 	-fopenmp \
 	$(foreach dir,$(local_libpath),-Wl,-rpath $(dir) )  \
  
 
 ifeq ($(DEBUG), 1)
-CFLAGS += -ggdb -DDEBUG -pg 
+CFLAGS += -ggdb -DDEBUG
 else
 CFLAGS += -Ofast 
 #CFLAGS += -fprofile-use #-fbranch-target-load-optimize2
@@ -47,8 +47,6 @@ endif
 CFLAGS += -fopenmp  $(foreach dir, $(local_includes), -I $(dir))
 
 UNAME := $(shell uname)
-
-
 
 SRC_DIR  = $(addprefix src/,$(MODULES))
 BUILD_DIR= $(addprefix build/,$(MODULES))
@@ -66,10 +64,17 @@ $1/%.o: %.cpp
 	$(CC) -c $$< -o $$@ $(CFLAGS)
 endef
 
+
 all:	checkdirs build/$(EXEC)
+
+post-build:
+ifeq ($(UNAME), Darwin)
+	$(foreach lib, $(LDLIBS), install_name_tool -change lib$(lib).dylib $(local_libpath)/lib$(lib).dylib  build/$(EXEC);)
+endif
 
 build/$(EXEC): $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS) 
+	@$(MAKE) -f genMakefile --no-print-directory post-build
 
 checkdirs: $(BUILD_DIR)
 

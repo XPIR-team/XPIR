@@ -539,7 +539,7 @@ double PIROptimizer::getDecCost(unsigned int d, crypto_ptr crypto)
     while(!clearChunks.empty())
       free(clearChunks.pop_front()); //free clear data.
 
-  }while((elapsed_time = (stop - start)) < 0.5);
+  }while((elapsed_time = (stop - start)) < 0.20);
 
   double result = elapsed_time / chunks;
 
