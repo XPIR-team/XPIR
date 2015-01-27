@@ -19,7 +19,9 @@ This project is closely related to another project available (soon?) at GitHub: 
 Installation:
 =============
 
-Requirements : g++>=4.8, gcc>=4.8, 64-bit Linux OS, Xcode, Xcode Command Line Tools on OSX.
+Requirements: 
+- 64-bits Linux OS: g++>=4.8, gcc>=4.8
+- Apple OSX: [Xcode](https://itunes.apple.com/fr/app/xcode/id497799835?mt=12), [Xcode Command Line Tools](https://developer.apple.com/library/ios/technotes/tn2339/_index.html) and [MacPorts](https://www.macports.org/install.php).
 
 Get a copy of the project with:
 - git clone git@github.com:XPIRe-team/XPIRe.git
