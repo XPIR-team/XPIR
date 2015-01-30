@@ -95,9 +95,9 @@ void PIRReplyGeneratorNFL::importDataNFL(uint64_t offset, uint64_t bytes_per_fil
   double start = omp_get_wtime();double now,delta;
 
   int nbruns=ceil((double)nbFiles/pirParam.alpha);
-//#ifdef MULTI_THREAD
-//  #pragma omp parallel for 
-//#endif
+#ifdef MULTI_THREAD
+  #pragma omp parallel for 
+#endif
   for (int i=0; i < nbruns; i++)
 	{
 	  dbhandler->readAggregatedStream(i, pirParam.alpha, offset, bytes_per_file, rawBits);
@@ -251,7 +251,7 @@ database_t PIRReplyGeneratorNFL::generateReplyGeneric(bool keep_imported_data)
   }
 
   start = omp_get_wtime();
-  //#pragma omp parallel for
+// #pragma omp parallel for
   for (unsigned iteration = 0; iteration < nbr_of_iterations; iteration++)
   {
     if (nbr_of_iterations > 1) cout << "PIRReplyGeneratorNFL: Iteration " << iteration << endl; 
@@ -433,6 +433,11 @@ double PIRReplyGeneratorNFL::generateReplySimulation(const PIRParameters& pir_pa
   pushFakeQuery();
   importFakeData(plaintext_nbr);
 
+
+  uint64_t repliesAmount = computeReplySizeInChunks(cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
+	
+  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+
   double start = omp_get_wtime();
   generateReply();
   double result = omp_get_wtime() - start;
@@ -507,7 +512,7 @@ lwe_cipher* result)
   for (unsigned int offset = 0; offset < query_size; offset += 200)
   {
 #ifdef MULTI_THREAD
-    # pragma omp parallel for
+//   # pragma omp parallel for
 #endif
     for (unsigned int current_poly=0 ; current_poly < currentMaxNbPolys ; current_poly++)
 	  { 
@@ -543,7 +548,6 @@ lwe_cipher* result)
           current_poly, lvl);
 #endif				
 		  }
-	  
       if ( lvl == pirParam.d-1 && offset + 200 >= query_size) 
       {
         // Watchout lwe_cipher.a and .b need to be allocated contiguously
