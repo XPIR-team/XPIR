@@ -37,7 +37,7 @@ then
 	echo "Reusing the source.random file"
 else
 	echo "Creating the source.random file"
-  dd if=/dev/urandom of=source.random count=`python2 -c"print($ONE_GBIT / (1024000) );"` bs=128000
+  dd if=/dev/urandom of=source.random count=`python -c"print( int($ONE_GBIT / (1024000) ) );"` bs=128000
 fi
 
 echo "Creating the databases .."
@@ -45,7 +45,7 @@ for DB in $ONE_MBIT $TEN_MBIT $HUNDRED_MBIT $ONE_GBIT
 do
   for L in $HUNDRED_KBIT $TEN_MBIT $ONE_GBIT $ONE_KBIT 
 	do
-		N=`python2 -c"print($DB / $L);"`
+    N=`python -c"print( int($DB / $L) );"`
 		
     # Only build directories with 1000 or less files
 		if [[ ( $DB -gt $L ) && ( $N -le 1000 )]]; 
@@ -53,8 +53,8 @@ do
 			
 			#First we need to obtain the appropriate parameters for N and L fixed
 	
-			L_KBIT=`python2 -c"print($L / 1024 );"`
-			L_BYTE=`python2 -c"print($L / 8 );"`
+      L_KBIT=`python -c"print( int($L / 1024) );"`
+      L_BYTE=`python -c"print( int($L / 8) );"`
 				
 			rm -fr db
 			mkdir db
@@ -75,8 +75,8 @@ do
   # For tests with more than 1000 files use a single file with split_file option
   rm -fr db
 	mkdir db
-  dd if=source.random of=db/test1 count=`python2 -c"print($DB / 1024000 );"` bs=128000
-	mv db db-`python2 -c"print($DB / 8 );"`
+  dd if=source.random of=db/test1 count=`python -c"print( int($DB / 1024000) );"` bs=128000
+  mv db db-`python -c"print( int($DB / 8) );"`
 done
 rm -f source.random
 cd ..
