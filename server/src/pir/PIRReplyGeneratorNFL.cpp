@@ -435,8 +435,8 @@ double PIRReplyGeneratorNFL::generateReplySimulation(const PIRParameters& pir_pa
 
 
   uint64_t repliesAmount = computeReplySizeInChunks(cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
-	
   repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+	repliesIndex = 0;
 
   double start = omp_get_wtime();
   generateReply();
