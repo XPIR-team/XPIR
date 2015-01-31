@@ -512,7 +512,7 @@ lwe_cipher* result)
   for (unsigned int offset = 0; offset < query_size; offset += 200)
   {
 #ifdef MULTI_THREAD
-//   # pragma omp parallel for
+   # pragma omp parallel for
 #endif
     for (unsigned int current_poly=0 ; current_poly < currentMaxNbPolys ; current_poly++)
 	  { 
