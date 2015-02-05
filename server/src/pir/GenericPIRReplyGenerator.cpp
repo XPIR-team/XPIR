@@ -21,7 +21,8 @@ GenericPIRReplyGenerator::GenericPIRReplyGenerator():
   database(empty_database),
   pirParam(emptyPIRParams),
   repliesArray(NULL),
-  repliesAmount(0)
+  repliesAmount(0),
+  repliesIndex(0)
 {
    mutex.lock();
 }
@@ -31,7 +32,8 @@ GenericPIRReplyGenerator::GenericPIRReplyGenerator(vector <std::string>& databas
   pirParam(param),
   dbhandler(db),
   repliesArray(NULL),
-  repliesAmount(0)
+  repliesAmount(0),
+  repliesIndex(0)
 {
   mutex.lock();
 }

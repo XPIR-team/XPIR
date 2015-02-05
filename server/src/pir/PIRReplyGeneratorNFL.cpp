@@ -205,10 +205,6 @@ database_t PIRReplyGeneratorNFL::generateReplyGeneric(bool keep_imported_data)
   database_wrapper.database_ptr = NULL;
   database_wrapper.elements_nbr = 0;
 
-  // Allocate memory for the reply array
-  repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
-  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
-
   // Don't use more than half of the computer's memory 
   usable_memory = getTotalSystemMemory()/2;
   database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
@@ -342,6 +338,11 @@ void PIRReplyGeneratorNFL::generateReply()
   uint64_t old_reply_elt_nbr = 0;
   uint64_t reply_elt_nbr = 1;
   uint64_t old_poly_nbr = 1;
+  
+  // Allocate memory for the reply array
+  repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+
 
   // Start global timers
   double start = omp_get_wtime();
