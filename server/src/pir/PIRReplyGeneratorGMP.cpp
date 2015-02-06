@@ -227,7 +227,7 @@ void PIRReplyGeneratorGMP::generateReply()
    	for (unsigned int j = i+1  ; j < pirParam.d ; j++)
 		  pir_nbr *= pirParam.n[j];
     
-    std::cout << "PIRReplyGeneratorGMP: Generating " << pir_nbr << " replies in recursion level " << i+1 << std::endl; 
+    if (pir_nbr!=1) std::cout << "PIRReplyGeneratorGMP: Generating " << pir_nbr << " replies in recursion level " << i+1 << std::endl; 
 
 		reply_vec = new mpz_t*[pir_nbr]; 
 
@@ -248,14 +248,14 @@ void PIRReplyGeneratorGMP::generateReply()
       if (vtstop - vtstart > 1) 
       {
         vtstart = vtstop;
-        std::cout <<"PIRReplyGeneratorGMP: Reply " << j+1 << "/" << pir_nbr << " generated\r" << std::flush;
+        if (pir_nbr!=1) std::cout <<"PIRReplyGeneratorGMP: Reply " << j+1 << "/" << pir_nbr << " generated\r" << std::flush;
         wasVerbose = true;
       }
 #endif
 
     }
     // Always print feedback for last reply 
-    std::cout <<"PIRReplyGeneratorGMP: Reply " << pir_nbr << "/" << pir_nbr << " generated" << std::endl;
+    if (pir_nbr!=1) std::cout <<"PIRReplyGeneratorGMP: Reply " << pir_nbr << "/" << pir_nbr << " generated" << std::endl;
 
     // Delete intermediate data obtained on the recursions
     if(i!=0)

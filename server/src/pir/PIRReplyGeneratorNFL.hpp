@@ -23,6 +23,7 @@
 #include "GenericPIRReplyGenerator.hpp"
 #include "../crypto/HomomorphicCrypto.hpp"
 #include "../crypto/NFLLWE.hpp"
+#include "../server/DBGenerator.hpp"
 
 class PIRReplyGeneratorNFL : public GenericPIRReplyGenerator
 {
