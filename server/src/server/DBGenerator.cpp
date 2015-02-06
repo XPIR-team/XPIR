@@ -21,7 +21,7 @@
 /* Default constructor : no splitting           */
 /*  -> 1 input file -> 1 output stream          */
 /************************************************/
-DBGenerator::DBGenerator(uint64_t nbStreams, uint64_t streamBytesize):
+DBGenerator::DBGenerator(uint64_t nbStreams, uint64_t streamBytesize, bool silent):
 random_engine(0), // Fixed seed of 0
 random_distribution()
 {
@@ -36,9 +36,11 @@ random_distribution()
 	}
 #endif
   nbFiles = nbStreams;
-
-	std::cout << "DBGenerator: The size of the database is " << maxFileBytesize*nbFiles << " bytes" << std::endl;
-	std::cout << "DBGenerator: The number of elements in the catalog is " << nbFiles << std::endl;
+  if(!silent)
+  {
+	  std::cout << "DBGenerator: The size of the database is " << maxFileBytesize*nbFiles << " bytes" << std::endl;
+	  std::cout << "DBGenerator: The number of elements in the catalog is " << nbFiles << std::endl;
+  }
 }
 
 DBGenerator::~DBGenerator() {}

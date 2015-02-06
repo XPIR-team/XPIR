@@ -158,6 +158,7 @@ double PIROptimizer::getAbs1PlaintextTime(HomomorphicCrypto* crypto_ptr, Generic
   uint64_t plaintext_nbr; 
   PIRParameters pir_params;
   pir_params.d = 1;
+  pir_params.alpha = 1;
   pir_params.n[0] = 4;
   
   crypto_ptr->setandgetAbsBitPerCiphertext(1, pir_params.n[0]); // Set best absorption possible 
@@ -184,6 +185,7 @@ double PIROptimizer::getPrecompute1PlaintextTime(HomomorphicCrypto* crypto_ptr, 
   uint64_t plaintext_nbr; 
   PIRParameters pir_params;
   pir_params.d = 1;
+  pir_params.alpha = 1;
   pir_params.n[0] = 4;
   
   crypto_ptr->setandgetAbsBitPerCiphertext(1, pir_params.n[0]); // Set best absorption possible 

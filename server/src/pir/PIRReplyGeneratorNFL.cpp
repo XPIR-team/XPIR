@@ -51,21 +51,14 @@ PIRReplyGeneratorNFL::PIRReplyGeneratorNFL(vector <string>& database_, PIRParame
 void PIRReplyGeneratorNFL::importFakeData(uint64_t plaintext_nbr)
 {
   uint64_t files_nbr = 1;
-
   for (unsigned int i = 0 ; i < pirParam.d ; i++) files_nbr *= pirParam.n[i];
-
-  input_data = new lwe_in_data[files_nbr];
+  
+  uint64_t plain_bytesize = cryptoMethod->getnflInstance().getpolyDegree()*cryptoMethod->getnflInstance().getnbModuli()*8; 
+  dbhandler = new DBGenerator(files_nbr, plaintext_nbr*plain_bytesize, true);
+  
   currentMaxNbPolys = plaintext_nbr;
-
-  for (unsigned int i = 0 ; i < files_nbr ; i++)
-  {
-    input_data[i].p = new poly64[currentMaxNbPolys];
-    input_data[i].nbPolys = currentMaxNbPolys;
-    for (unsigned int j = 0 ; j < currentMaxNbPolys ; j++)
-    {
-      input_data[i].p[j] = cryptoMethod->getnflInstance().allocBoundedRandomPoly(0, true); 
-    }
-  }
+  
+  importDataNFL(0, plaintext_nbr*plain_bytesize);
 }
 
 
@@ -432,6 +425,7 @@ double PIRReplyGeneratorNFL::generateReplySimulation(const PIRParameters& pir_pa
   setPirParams((PIRParameters&)pir_params);
   initQueriesBuffer();
   pushFakeQuery();
+  
   importFakeData(plaintext_nbr);
 
 
@@ -443,9 +437,10 @@ double PIRReplyGeneratorNFL::generateReplySimulation(const PIRParameters& pir_pa
   generateReply();
   double result = omp_get_wtime() - start;
 
-  freeFakeInputData();
   freeQuery();
+  freeInputData();
   freeResult();
+  delete dbhandler;
   return result;
 }
 
@@ -473,9 +468,10 @@ double PIRReplyGeneratorNFL::precomputationSimulation(const PIRParameters& pir_p
   }
   double result = omp_get_wtime() - start;
   std::cout << "PIRReplyGeneratorNFL: Deserialize took " << result << " (omp)seconds" << std::endl;
-  freeFakeInputData();
   freeQuery();
+  freeInputData();
   freeResult();
+  delete dbhandler;
   return result;
 }
 
@@ -827,22 +823,6 @@ void PIRReplyGeneratorNFL::freeQuery()
   printf( "queriesBuf freed\n");
 #endif
   
-}
-
-void PIRReplyGeneratorNFL::freeFakeInputData()
-{
-  uint64_t files_nbr = 1;
-  for (unsigned int i = 0 ; i < pirParam.d ; i++) files_nbr *= pirParam.n[i];
-
-  for (unsigned int i = 0 ; i < files_nbr ; i++)
-  {
-    for (unsigned int j = 0 ; j < currentMaxNbPolys ; j++)
-    {
-      free(input_data[i].p[j]); 
-    }
-    delete[] input_data[i].p;
-  }
-  delete[] input_data;
 }
 
 void PIRReplyGeneratorNFL::freeResult()

@@ -37,7 +37,7 @@ PIRServer::PIRServer(boost::asio::io_service &ios, unsigned int port, uint64_t s
   if (usedbgenerator)
   {
     std::cout << "PIRServer: Launching DBGenerator" << std::endl;
-    dbhandler = new DBGenerator(dbgenerator_n, dbgenerator_l); 
+    dbhandler = new DBGenerator(dbgenerator_n, dbgenerator_l, false); 
   }
   else if (split_value == 1)
   {

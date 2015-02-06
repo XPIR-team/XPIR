@@ -28,7 +28,7 @@ class DBGenerator : public DBHandler
 private:
   std::vector <std::string> file_list; // the output file list
 public:
-  DBGenerator(uint64_t nbStreams, uint64_t streamBytesize); 
+  DBGenerator(uint64_t nbStreams, uint64_t streamBytesize, bool silent); 
   ~DBGenerator();
   
   std::string getCatalog(const bool typeOfCatalog);
