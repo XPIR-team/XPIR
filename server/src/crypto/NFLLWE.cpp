@@ -596,6 +596,7 @@ void NFLLWE::recomputeNoiseAmplifiers() {
 		mpz_export(&Abit_mod[currentModulus], NULL, 1, sizeof(uint64_t), 0, 0, tmpz1);
 		Abit_mod_shoup[currentModulus]=((uint128_t) Abit_mod[currentModulus] << 64) / moduli[currentModulus];
 	}
+  mpz_clears(tmpz1, tmpz2, NULL);
 }
 
 unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
@@ -727,6 +728,8 @@ void NFLLWE::clearSecretKeys()
   if(oldNbModuli)
   {
     // secreKey was allocated with a single allocation
+    delete[] Abit_mod;
+    delete[] Abit_mod_shoup;
     free(secretKey[0]);
     delete[] secretKey;
   }
