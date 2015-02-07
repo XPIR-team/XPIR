@@ -19,6 +19,8 @@
 #define DEF_DBDIRPROC
 
 #include "DBHandler.hpp"
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
+#include <boost/thread.hpp>
 #include <dirent.h>
 #include <vector>
 #include <string>
@@ -33,6 +35,7 @@
 class DBDirectoryProcessor : public DBHandler
 {
 private:
+	boost::mutex mutex;
   std::string directory;
   std::vector<std::ifstream*> fdPool; // a pool of file descriptors
   std::vector <std::string> file_list; // the output file list
@@ -42,7 +45,7 @@ private:
 public:
   DBDirectoryProcessor(); // constructor with no splitting
   DBDirectoryProcessor(uint64_t nbStreams); // constructor with filesplitting 1 -> nbStreams
-  ~DBDirectoryProcessor();
+	virtual ~DBDirectoryProcessor();
   
   std::string getCatalog(const bool typeOfCatalog);
   

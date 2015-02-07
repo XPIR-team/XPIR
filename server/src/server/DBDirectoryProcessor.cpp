@@ -162,14 +162,17 @@ uint64_t DBDirectoryProcessor::getmaxFileBytesize() {
 	return maxFileBytesize;
 }
 
-std::ifstream* DBDirectoryProcessor::openStream(uint64_t streamNb, uint64_t requested_offset) {
-	directory=std::string(DEFAULT_DIR_NAME);
-	std::ifstream* is= fdPool.back();
-	 fdPool.pop_back();
+inline std::ifstream* DBDirectoryProcessor::openStream(uint64_t streamNb, uint64_t requested_offset) {
+	std::string local_directory(DEFAULT_DIR_NAME);
+
+	mutex.lock();
+	std::ifstream* is = fdPool.back();
+//	fdPool.pop_back();
+	mutex.unlock();
 	// When there is no splitting, each ifstream is associated with a real file 
 	// (at least when no aggregation is done which is the case for now)
 	if(!filesSplitting) {
-		is->open( directory + file_list[streamNb], std::ios::binary );
+		is->open( local_directory + file_list[streamNb], std::ios::binary );
 		is->seekg(requested_offset);
 	} else {
 		// But when we are doing file splitting, we just need to position the ifstream at the correct position
