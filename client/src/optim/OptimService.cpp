@@ -323,6 +323,7 @@ bool OptimService::fileOutdated(std::string crypto_name, std::string extension)
     if (cache.erase(crypto_param) == 0) 
     {
       std::cout << "OptimService: "<< crypto_param << " not found in the cache" << std::endl;
+      delete crypto_ptr;
       return true;
     }
   }
@@ -331,8 +332,10 @@ bool OptimService::fileOutdated(std::string crypto_name, std::string extension)
   if(!cache.empty()) 
   {
     std::cout << "OptimService: " << extension << " cache has too many entries" << std::endl;
+    delete crypto_ptr;
     return true;
   }
+  delete crypto_ptr;
   return false;
 }
 

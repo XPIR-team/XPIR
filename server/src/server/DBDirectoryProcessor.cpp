@@ -123,7 +123,9 @@ DBDirectoryProcessor::DBDirectoryProcessor(uint64_t nbStreams) : filesSplitting(
 	std::cout << "DBDirectoryProcessor: The number of elements in the catalog is " << file_list.size() << std::endl;
 }
 
-DBDirectoryProcessor::~DBDirectoryProcessor() {}
+DBDirectoryProcessor::~DBDirectoryProcessor() {
+  for (auto ifs : fdPool) delete ifs; 
+}
 
 std::string DBDirectoryProcessor::getCatalog(const bool typeOfCatalog) {
 	std::string buf;

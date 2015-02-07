@@ -152,7 +152,7 @@ database_t PIRReplyGeneratorNFL::generateReplyGeneric(bool keep_imported_data)
   boost::mutex::scoped_lock l(mutex);
   const uint64_t chunkBytesize = SNIFFER_CHUNK_BYTESIZE;
   const uint64_t iterations = dbhandler->getmaxFileBytesize()/(chunkBytesize+1);
-  std::ifstream *is = dbhandler->openStream(0,0);
+//  std::ifstream *is = dbhandler->openStream(0,0);
   const uint64_t nbFiles = dbhandler->getNbStream();
   const unsigned int polysize = cryptoMethod->getpolyDegree()*cryptoMethod->getnbModuli();
   const unsigned int jumpcipher = 2*polysize / sizeof(uint64_t);
