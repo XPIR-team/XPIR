@@ -1,15 +1,15 @@
-XPIRe: Private Information Retrieval for Everyone
+XPIR: Private Information Retrieval for Everyone
 =================================================
 
-XPIRe allows a user to privately download an element from a database. This means that the database server knows that she has sent a database element to the user but does not know which one. The scientific term for the underlying protocol is Private Information Retrieval (PIR). This library is described and studied in the paper:
+XPIR allows a user to privately download an element from a database. This means that the database server knows that she has sent a database element to the user but does not know which one. The scientific term for the underlying protocol is Private Information Retrieval (PIR). This library is described and studied in the paper:
 
-Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIRe: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprint.iacr.org/2014/1025.
+Carlos Aguilar-Melchor, Joris Barrier, Laurent Fousse, Marc-Olivier Killijian, "XPIR: Private Information Retrieval for Everyone", available on the IACR eprints, http://eprint.iacr.org/2014/1025.
 
 If you use our library, or a sub-part, such a NFLlib, please cite this paper on your work.
 
 This project is closely related to another project available (soon?) at GitHub: NFLlib. The NTT-based Fast Lattice library, which allows fast cryptographic computations over ideal lattices. Adapting this project to a more recent version of NFLlib would provide a performance boost but would be a lot of work so we are not planning to do it immediately. 
 
-*Important Note 1*: A PIR implementation for a specific application can be much simpler and more compact than this library. Indeed, much of the code of XPIRe is aimed to ensure that the library delivers good performance in a large span of applications *without user interaction* so that the user does not need to be an expert on PIR or cryptography to use it with good performance results. **If you want to use a PIR protocol for a very specific setting feel free to contact us for building up a collaboration !**
+*Important Note 1*: A PIR implementation for a specific application can be much simpler and more compact than this library. Indeed, much of the code of XPIR is aimed to ensure that the library delivers good performance in a large span of applications *without user interaction* so that the user does not need to be an expert on PIR or cryptography to use it with good performance results. **If you want to use a PIR protocol for a very specific setting feel free to contact us for building up a collaboration !**
 
 *Important Note 2*: For publication issues, a small part of the code is missing. From a technical point of view this correspond to the gaussian noise generator for LWE which is replaced by a uniform noise generator until some scientific results are published. Replacing our uniform noise generator with our gaussian noise generator does not impact performance in an observable way.
 
@@ -24,8 +24,8 @@ Requirements:
 - Apple OSX: [Xcode](https://itunes.apple.com/fr/app/xcode/id497799835?mt=12), [Xcode Command Line Tools](https://developer.apple.com/library/ios/technotes/tn2339/_index.html) and [MacPorts](https://www.macports.org/install.php).
 
 Get a copy of the project with:
-- git clone git@github.com:XPIRe-team/XPIRe.git
-- or by downloading from https://github.com/XPIRe-team/XPIRe/archive/master.zip
+- git clone git@github.com:XPIR-team/XPIR.git
+- or by downloading from https://github.com/XPIR-team/XPIR/archive/master.zip
 
 *On OSX only*, execute the following commands:
  
@@ -38,7 +38,7 @@ sudo port select clang mp-clang-3.6
 
 Then execute the following commands to compile everything (boost, gmp, mpfr, create essential files, build client and server):
 ```
-$ cd XPIRe
+$ cd XPIR
 $ make
 ```
 
@@ -54,7 +54,7 @@ The first test should be pretty long (to build initial caches) and then a set of
 Usage:
 ======
 
-XPIRe is composed of a server and a client. Both must be started on their respective directories. Thus to start the server execute:
+XPIR is composed of a server and a client. Both must be started on their respective directories. Thus to start the server execute:
 ```
 $ cd server
 $ ./build/PIRServer
@@ -82,7 +82,7 @@ Server-driven mode. This mode is to be used when multiple clients will connect t
 Load cryptographic and PIR parameters from arg file. Currently unavailable (see issues).
 
 `-s, --split_file arg (=1)`    
-Only use first file in db directory and split it in arg database elements. This allows to have a large database with many fixed size elements (e.g. bits, bytes, 24-bit depth points) into a single file which is much more efficient from a file-system point of view than having many small files. Building databases from a single file with more complex approaches (e.g. csv, or sqlite files) would be a great feature to add to XPIRe.
+Only use first file in db directory and split it in arg database elements. This allows to have a large database with many fixed size elements (e.g. bits, bytes, 24-bit depth points) into a single file which is much more efficient from a file-system point of view than having many small files. Building databases from a single file with more complex approaches (e.g. csv, or sqlite files) would be a great feature to add to XPIR.
 
 `-p, --port arg (=1234)`    
 Port used by the server to listen to incoming connections, by default 1234.
