@@ -7,15 +7,15 @@ import feature ;
 # Compiler configuration. This definition will be used unless
 # you already have defined some toolsets in your user-config.jam
 # file.
-if ! gcc in [ feature.values <toolset> ]
+if ! darwin in [ feature.values <toolset> ]
 {
-    using gcc ; 
+    using darwin ; 
 }
 
-project : default-build <toolset>gcc ;
+project : default-build <toolset>darwin ;
 
 # Python configuration
-using python : 2.7 : /usr ;
+using python : 2.7 : /System/Library/Frameworks/Python.framework/Versions/2.7 ;
 
 # List of --with-<library> and --without-<library>
 # options. If left empty, all libraries will be built.

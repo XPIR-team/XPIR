@@ -16,4 +16,4 @@
 #*/
 
 local_includes = ${PWD}/../local/include
-local_libpath = ${PWD}/../local/lib /usr/local/lib
+local_libpath = ${PWD}/../local/lib

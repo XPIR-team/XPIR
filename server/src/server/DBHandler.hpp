@@ -27,7 +27,6 @@ class DBHandler
 private:
   std::vector <std::string> file_list; // the output file list
 public:
-  DBHandler(){}; 
   
   virtual std::string getCatalog(const bool typeOfCatalog)=0;
   
@@ -38,6 +37,7 @@ public:
   virtual uint64_t readStream(std::ifstream* s, char * buf, uint64_t size)=0;
   virtual void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits)=0;
   virtual void closeStream(std::ifstream* s)=0;
+  virtual ~DBHandler(){};
   
   
 private:

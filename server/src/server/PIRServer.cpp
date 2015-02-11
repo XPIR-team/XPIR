@@ -130,5 +130,5 @@ void PIRServer::no_pipeline(bool b)
 
 PIRServer::~PIRServer()
 {
-  
+  delete dbhandler; 
 }
