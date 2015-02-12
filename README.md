@@ -42,13 +42,20 @@ $ cd XPIR
 $ make
 ```
 
+*On OSX only*, if you have an old OSX version and very long paths, you may have this error:
+```
+error: install_name_tool: changing install names or rpaths can't be redone for: build/PIRServer 
+(for architecture x86_64) because larger updated load commands do not fit
+```
+This is solved by moving XPIRe to a directory with a shorter path (so that hard paths to libraries can fit in the executable header). 
+
 When this is done you can check that the server/client work correctly with the following commands:
 ```
 $ cd server 
 $ ./check-correctness
 ```
 
-The first test should be pretty long (to build initial caches) and then a set of tests should be display CORRECT or "Skipping test...". If you get INCORRECT tests then something went wrong ...
+The first test should be pretty long (to build initial caches) and then a set of tests should be display CORRECT or "Skipping test...". If you get INCORRECT tests or core dump notifications then something went wrong ...
 
 
 Usage:
