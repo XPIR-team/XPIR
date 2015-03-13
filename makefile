@@ -21,19 +21,19 @@ boost:
 	@echo "#############################################"
 	@echo "Building boost..."
 	@echo "#############################################"
-	@sh helper_script.sh boost
+	@bash helper_script.sh boost
 	@echo "\n\n"
 gmp:
 	@echo "#############################################"
 	@echo "Building gmp..."
 	@echo "#############################################"
-	@sh helper_script.sh gmp
+	@bash helper_script.sh gmp
 	@echo "\n\n"
 mpfr:
 	@echo "#############################################"
 	@echo "Building mpfr..."
 	@echo "#############################################"
-	@sh helper_script.sh mpfr
+	@bash helper_script.sh mpfr
 	@echo "\n\n"
 database:
 	@echo "#############################################"
@@ -64,7 +64,7 @@ server:
 
 clean:
 	@if [ -d dependencies/boost ]; then cd dependencies/boost; ./bootstrap.sh; ./bjam --clean; cd ../..; fi
-	@sh helper_script.sh gmpclean
-	@sh helper_script.sh mpfrclean
+	@bash helper_script.sh gmpclean
+	@bash helper_script.sh mpfrclean
 	@cd client; make clean; cd ..
 	@cd server; make clean; cd ..

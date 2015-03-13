@@ -218,10 +218,8 @@ void DBDirectoryProcessor::readAggregatedStream(uint64_t streamNb, uint64_t alph
 	uint64_t endStream = std::min(streamNb*alpha + alpha - 1, getNbStream() - 1);
 	uint64_t paddingStreams = (streamNb*alpha+alpha) >= getNbStream() ? (streamNb*alpha+alpha) - getNbStream() : 0;
 
-#ifdef OSX
-#pragma omp critical
+  #pragma omp critical
 	{	
-#endif
 		for (int i=startStream; i <= endStream; i++)
 		{
 			std::ifstream *stream = openStream(i, offset);
@@ -236,7 +234,5 @@ void DBDirectoryProcessor::readAggregatedStream(uint64_t streamNb, uint64_t alph
 		{
 			bzero(rawBits + (endStream % alpha) * fileByteSize, fileByteSize*paddingStreams);
 		}
-#ifdef OSX
 	}
-#endif
 }

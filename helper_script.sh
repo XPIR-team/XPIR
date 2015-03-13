@@ -1,3 +1,4 @@
+#!/bin/bash
 #/* Copyright (C) 2014 Carlos Aguilar Melchor, Joris Barrier, Marc-Olivier Killijian
 # * This file is part of XPIR.
 # *
@@ -23,7 +24,7 @@ then
   exit $?
 fi
 
-if [ $1 = "gmp" ] && [ -d dependencies/gmp-6.0.0 ]
+if [ "$1" = "gmp" ] && [ -d dependencies/gmp-6.0.0 ]
 then
   cd dependencies/gmp-6.0.0 && $CONFIGURE && make && make check && make install
   exit $?
@@ -35,13 +36,13 @@ then
   exit $?
 fi
 
-if [ $1 = "gmpclean" ] && [ -d dependencies/gmp-6.0.0 ]
+if [ "$1" = "gmpclean" ] && [ -d dependencies/gmp-6.0.0 ]
 then
   cd dependencies/gmp-6.0.0 && $CONFIGURE && make distclean
   exit $?
 fi
                             
-if [ $1 = "boost" ] && [ -d dependencies/boost ]
+if [ "$1" = "boost" ] && [ -d dependencies/boost ]
 then
 	LOCAL_PATH="$PWD/local/ "
   # Boostrap the build module
@@ -50,7 +51,7 @@ then
   # Use the resulting bjam to compile everything 
 	./bjam --prefix=$LOCAL_PATH install 
 	#fix linking issue on OSX
-	if [ `uname` == "Darwin" ]
+	if [ `uname` = "Darwin" ]
 	then 
 		cd ../../local/lib/
 		install_name_tool -change libboost_system.dylib `pwd`/libboost_system.dylib libboost_thread.dylib
