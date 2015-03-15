@@ -74,8 +74,7 @@ void PIRReplyGeneratorNFL::importDataNFL(uint64_t offset, uint64_t bytes_per_fil
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];
 
 	input_data = new lwe_in_data[theoretical_files_nbr];
-	// Because DBHandler does the filepadding (all files are maxFileSize) we don't need to calloc, malloc is enough
-	char *rawBits = (char*)malloc(fileByteSize*pirParam.alpha*sizeof(char));
+	char *rawBits = (char*)calloc(fileByteSize*pirParam.alpha, sizeof(char));
 
 	currentMaxNbPolys=0;
 
@@ -88,9 +87,9 @@ void PIRReplyGeneratorNFL::importDataNFL(uint64_t offset, uint64_t bytes_per_fil
   double start = omp_get_wtime();double now,delta;
 
   int nbruns=ceil((double)nbFiles/pirParam.alpha);
-#ifdef MULTI_THREAD
-  #pragma omp parallel for 
-#endif
+  
+  // WARNING this section should not be multithreade as rawbits is shared and readAggregatedStream
+  // is not threadsafe
   for (int i=0; i < nbruns; i++)
 	{
 	  dbhandler->readAggregatedStream(i, pirParam.alpha, offset, bytes_per_file, rawBits);
@@ -110,7 +109,6 @@ void PIRReplyGeneratorNFL::importDataNFL(uint64_t offset, uint64_t bytes_per_fil
 #else
     input_data[i].p = cryptoMethod->deserializeDataNFL((unsigned char**)&rawBits, (uint64_t) 1, fileByteSize*pirParam.alpha*GlobalConstant::kBitsPerByte, input_data[i].nbPolys);
 #endif
-    if (input_data[i].nbPolys>currentMaxNbPolys) currentMaxNbPolys=input_data[i].nbPolys;
 
 #ifdef PERFTIMERS
     // Give some feedback if it takes too long
@@ -118,16 +116,19 @@ void PIRReplyGeneratorNFL::importDataNFL(uint64_t offset, uint64_t bytes_per_fil
     if (vtstop - vtstart > 1) 
     {
       vtstart = vtstop;
-      std::cout <<"PIRReplyGeneratorNFL: Element " << i+1 << "/" << nbFiles << " imported\r" << std::flush;
+      std::cout <<"PIRReplyGeneratorNFL: Element " << i+1 << "/" << nbruns << " imported\r" << std::flush;
      wasVerbose = true;
      lastindex = i+1;
     }
 #endif
   }
 		
+  for (int i=0; i < nbruns; i++)
+    if (input_data[i].nbPolys>currentMaxNbPolys) currentMaxNbPolys=input_data[i].nbPolys;
+
 #ifdef PERFTIMERS
     // If feedback was given say we finished
-    if (wasVerbose && lastindex != nbFiles)  std::cout <<"PIRReplyGeneratorNFL: Element " << nbFiles << "/" << nbFiles << " imported" << std::endl;
+    if (wasVerbose && lastindex != nbFiles)  std::cout <<"PIRReplyGeneratorNFL: Element " << nbruns << "/" << nbFiles << " imported" << std::endl;
 #endif
   
   /** FILE PADDING **/

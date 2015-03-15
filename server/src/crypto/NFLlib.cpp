@@ -387,6 +387,9 @@ poly64 *NFLlib::deserializeDataNFL(unsigned char **inArrayOfBuffers, uint64_t nb
   deserData[0] = bitsplitter(inArrayOfBuffers, nbrOfBuffers, dataBitsizePerBuffer, bitsPerCoordinate);
  
   // We finish the work by applying the NTT transform
+#ifdef MULTI_THREAD
+  #pragma omp parallel for 
+#endif
   for (unsigned int i = 0 ; i < polyNumber ; i++)
   {
     deserData[i] = deserData[0]+i*nbModuli*polyDegree;
