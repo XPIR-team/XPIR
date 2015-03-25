@@ -173,8 +173,8 @@ if [[ TEST_PAILLIER -eq 1 ]]; then
 	for L in $ONE_KBIT $HUNDRED_KBIT $TEN_MBIT $ONE_GBIT 
 	do
 		
-	    N=`python -c"print($DB / $L);"`
-	    L_BYTE=`python -c"print($L / 8 );"`
+    N=`python -c"print(int($DB / $L));"`
+    L_BYTE=`python -c"print(int($L / 8 ));"`
 	    
 	    if [[ ( $DB -gt $L ) && ( -f  db-$L_BYTE-$N/test1 ) ]]; 
 	    then
@@ -212,9 +212,9 @@ for DB in $ONE_MBIT $TEN_MBIT $HUNDRED_MBIT $ONE_GBIT
 do
     for L in $ONE_KBIT $HUNDRED_KBIT $TEN_MBIT $ONE_GBIT  
     do
-	N=`python -c"print($DB / $L);"`
-	L_BYTE=`python -c"print($L / 8 );"`
-	DB_BYTE=`python -c"print($DB / 8);"`
+      N=`python -c"print(int($DB / $L));"`
+      L_BYTE=`python -c"print(int($L / 8) );"`
+      DB_BYTE=`python -c"print(int($DB / 8));"`
 
   # If N <= 10000 database with different files must exist 
   # If not database with file to split must exist
