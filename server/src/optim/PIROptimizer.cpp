@@ -170,7 +170,7 @@ double PIROptimizer::getAbs1PlaintextTime(HomomorphicCrypto* crypto_ptr, Generic
     result = generator->generateReplySimulation(pir_params, plaintext_nbr);
     plaintext_nbr *= 2;
   }
-  while(result < 0.5);
+  while(result < 0.5 && plaintext_nbr*pir_params.n[0]*crypto_ptr->getPublicParameters().getCiphertextBitsize() < (1UL<<30));
 
   plaintext_nbr /= 2;
 
@@ -197,7 +197,7 @@ double PIROptimizer::getPrecompute1PlaintextTime(HomomorphicCrypto* crypto_ptr, 
     result = generator->precomputationSimulation(pir_params, plaintext_nbr);
     plaintext_nbr *= 2;
   }
-  while(result < 0.5 && result != 0.0);
+  while(result < 0.5 && result != 0.0 && plaintext_nbr*pir_params.n[0]*crypto_ptr->getPublicParameters().getCiphertextBitsize() < (1UL<<30));
 
   plaintext_nbr /= 2;
 
