@@ -255,7 +255,7 @@ do
         CIPH_SIZE=`echo $QP|tr : \*`"*2"
         QUERY_SIZE="$CIPH_SIZE*$REC*$N.0**(1/$REC.0)"
         DB_FFT_SIZE="6*$DB"
-        if [[ ( `python -c "print ($QUERY_SIZE+$DB_FFT_SIZE)/10**9 > 40;"` == "True" ) || ( `python -c "print ($CIPH_SIZE*$N+$QUERY_SIZE)/10**9 > 40;"` == "True" ) ]]; then
+        if [[ ( `python -c "print(($QUERY_SIZE+$DB_FFT_SIZE)/10**9 > 40);"` == "True" ) || ( `python -c "print(($CIPH_SIZE*$N+$QUERY_SIZE)/10**9 > 40);"` == "True" ) ]]; then
           echo "Skipping tests requiring more than 5Gbytes RAM"
         else
 			    do_a_test
