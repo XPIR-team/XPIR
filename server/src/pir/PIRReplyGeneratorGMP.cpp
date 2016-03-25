@@ -91,14 +91,17 @@ void PIRReplyGeneratorGMP::importFakeData(uint64_t plaintext_nbr)
 {
   unsigned int file_nbr = 1;
   unsigned int abs_size = cryptoMethod->getPublicParameters().getAbsorptionBitsize()/GlobalConstant::kBitsPerByte;
-  char* raw_data;
+  unsigned int ciph_size = cryptoMethod->getPublicParameters().getCiphertextBitsize()/GlobalConstant::kBitsPerByte;
+  char *raw_data, *raw_data2;
   
   for (unsigned int i = 0 ; i < pirParam.d ; i++)
 		file_nbr *= pirParam.n[i];	
   
   datae = new mpz_t*[file_nbr];
   raw_data = (char*) malloc(abs_size + 1);	
+  raw_data2 = (char*) malloc(ciph_size + 1);	
   memset(raw_data, 0xaa, abs_size);
+  memset(raw_data2, 0xaa, ciph_size);
   maxChunkSize = plaintext_nbr;
 
   for (unsigned int i = 0 ; i < file_nbr; i++)
@@ -111,7 +114,12 @@ void PIRReplyGeneratorGMP::importFakeData(uint64_t plaintext_nbr)
     }
   }
 
+	for (unsigned int i = 0 ; i < pirParam.n[0] ; i++)
+  {
+    mpz_import(queriesBuf[0][i], ciph_size, 1, sizeof(char), 0, 0, raw_data2);
+  }
   free(raw_data); 
+  free(raw_data2); 
 }
 
 void PIRReplyGeneratorGMP::clearFakeData(uint64_t plaintext_nbr)
