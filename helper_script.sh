@@ -16,7 +16,7 @@
 # *  along with XPIR.  If not, see <http://www.gnu.org/licenses/>.
 #*/
 
-wget http://homepages.laas.fr/~mkilliji/dependencies.tgz
+wget https://github.com/XPIR-team/XPIR-dependencies/blob/master/dependencies.tgz
 tar zxf dependencies.tgz
 rm dependencies.tgz
 mkdir local
