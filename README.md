@@ -1,13 +1,14 @@
 XPIR: Private Information Retrieval for Everyone
 =================================================
 
-### XPIR v0.2.0-beta is released please get it here: https://github.com/XPIR-team/XPIR/releases
+### XPIR v0.2.0-beta is released please get it [here](https://github.com/XPIR-team/XPIR/releases).
 
 This version introduces three major changes:
   * Compilation with cmake instead of the classic autotools
   * Dependencies are no longer included (the user can install them by himself or use a script to download and install them)
   * An API allowing to use XPIR as a library has been released (see below)
-The original client/server applications are still available with the associated optimization tools. These can still be used for example to do some tests on PIR without developping an application or to use the optimization process as an oracle in order to get interesting cryptographic and PIR parameters for a given setting.
+
+The original client/server applications are still available with the associated optimization tools. These can still be used for example to do some tests on PIR without developping an application or to use the optimization process in order to get interesting cryptographic and PIR parameters for a given setting.
 
 **If you use OSX, there are compilation/execution issues with v0.2.0-beta.** The old version is still available in the branch old-master and of course through previous [releases](https://github.com/XPIR-team/XPIR/releases). 
 
@@ -40,7 +41,7 @@ Get a copy of the project with:
 - git clone git@github.com:XPIR-team/XPIR.git
 - or by downloading from https://github.com/XPIR-team/XPIR/archive/master.zip
 
-*On OSX only*, execute the following commands:
+*On OSX only*, execute the following commands (due to avx optimization issues using clang-3.6 is mandatory):
  
 ```
 sudo port install gcc48
@@ -70,17 +71,15 @@ The first test should be pretty long (to build initial caches) and then a set of
 error: install_name_tool: changing install names or rpaths can't be redone for: _build/apps/pir_server 
 (for architecture x86_64) because larger updated load commands do not fit
 ```
-This is solved by moving XPIRe to a directory with a shorter path (so that hard paths to libraries can fit in the executable header). 
-
-By default, the server sends the full catalog to the client except if the catalog size is larger than 1000 items (defined in PIRSession.cpp). This default behavior can be changed by unseting the SEND_CATALOG define in CMakeLists.txt or via cmake -U option : -USEND_CATALOG.
+This is solved by moving XPIR to a directory with a shorter path (so that hard paths to libraries can fit in the executable header). 
 
 The following CMake options are relevant:
 
 Option                             | Description
 -----------------------------------|---------------------------------
-`-USEND_CATALOG`                   | Do not send the catalog to client (default is send catalog if |catalog|<1000)
-`-UMULTI_THREAD`                   | Do not use multi-threading
-`-UPERF_TIMERS`                    | Do not show performance measurements during execution
+`-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if |catalog|<1000)
+`-DMULTI_THREAD=OFF`               | Do not use multi-threading
+`-DPERF_TIMERS=OFF`                | Do not show performance measurements during execution
 
 
 Usage of XPIR as a library:
