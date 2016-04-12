@@ -10,7 +10,7 @@ endif()
 
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb")
+set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-fopenmp")
 set(BOOST_ROOT "./local")
 

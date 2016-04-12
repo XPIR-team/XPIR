@@ -16,9 +16,9 @@
 # *  along with XPIR.  If not, see <http://www.gnu.org/licenses/>.
 #*/
 
-wget --no-check-certificate https://github.com/XPIR-team/XPIR-dependencies/raw/master/dependencies.tgz
+#wget --no-check-certificate https://github.com/XPIR-team/XPIR-dependencies/raw/master/dependencies.tgz
 tar zxf dependencies.tgz
-rm dependencies.tgz
+#rm dependencies.tgz
 mkdir local
 
 CONFIGURE="./configure CFLAGS=-I$PWD/local/include LDFLAGS=-L$PWD/local/lib --prefix=$PWD/local/"
