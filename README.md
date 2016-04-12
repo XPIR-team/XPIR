@@ -80,6 +80,7 @@ Option                             | Description
 `-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if |catalog|<1000)
 `-DMULTI_THREAD=OFF`               | Do not use multi-threading
 `-DPERF_TIMERS=OFF`                | Do not show performance measurements during execution
+`-DCMAKE_BUILD_TYPE=Debug`         | Add debugging options and remove optimization
 
 
 Usage of XPIR as a library:
