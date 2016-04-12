@@ -1,0 +1,33 @@
+/* Copyright (C) 2014 Carlos Aguilar Melchor, Joris Barrier, Marc-Olivier Killijian
+ * This file is part of XPIR.
+ *
+ *  XPIR is free software: you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  XPIR is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with XPIR.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+The files in this project are released under various licenses, all of
+them compatible with the GPLv3.
+
+The dependencies directory at the root of the project contains: a full
+version of the GMP library; a full version of the MPFR library; and a
+subpart of the Boost library (extracted with their internal tool
+bcp). Licensing rules for the associated files are given directly in
+the corresponding directories. GMP and MPFR are released under GPLv3
+and Boost under Boost license which is compatible with GPLv3.
+
+For the rest of the project files, most are released under the GPLv3
+itself, but we reused some pieces of code sometimes, which are either
+under a BSD license, or in the public domain. Outside of the
+dependencies directory named above, the license for each file is given
+at the beggining of the file.
+

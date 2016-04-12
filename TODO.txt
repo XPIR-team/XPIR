@@ -1,0 +1,5 @@
+  * verifier les makefiles originaux pour etre surs qu on oublie rien qu on faisait en master
+  
+  * verifier d'autres archi/install systeme (osx par exemple en particulier là ou il traine des $home)
+  * gerer la compilation release en OSX
+
