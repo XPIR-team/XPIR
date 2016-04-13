@@ -4,10 +4,6 @@ add_subdirectory("prng")
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp")
 set (CMAKE_EXE_LINKER_FLAGS "-fopenmp")
-if (APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-fopenmp -L$ENV{HOME}/Code/xpir/freshxpir/xpir-ng/local/lib/ -lboost_program_options")
-
-endif()
 include_directories(..)
 
 add_library(pir_crypto STATIC

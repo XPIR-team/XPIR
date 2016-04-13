@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 2.6.0)
 
-if (APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-fopenmp -L$ENV{HOME}/Code/xpir/freshxpir/xpir-ng/local/lib/ -lboost_program_options")
-
-endif()
 
 include_directories(.)
 include_directories(..)
@@ -12,16 +8,6 @@ include_directories(../..)
 add_executable(pir_server DBDirectoryProcessor.cpp DBGenerator.cpp PIRServer.cpp PIRSession.cpp ServerService.cpp main.cpp)
 
 target_link_libraries(pir_server pir ${Boost_LIBRARIES} ${GMP_LIBRARIES} pthread )
-
-# set (git_cmd "git")
-# set (git_arg "--version")
-# message(STATUS "git cmd: ${git_cmd}")
-# execute_process(COMMAND ${git_cmd} ${git_arg}
-#   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-#   RESULT_VARIABLE git_result
-#   OUTPUT_VARIABLE git_ver)
-#
-# message(STATUS "git ver[${git_result}]: ${git_ver}")
 
 file(COPY "../tools/check-correctness.sh" DESTINATION ".")
 file(COPY "../tools/makedb.sh" DESTINATION ".")

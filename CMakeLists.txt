@@ -16,7 +16,7 @@ set(BOOST_ROOT "./local")
 
 SET( Boost_USE_STATIC_LIBS FALSE )
 find_package(Boost 1.55.0  REQUIRED
-  COMPONENTS atomic chrono date_time exception program_options regex system thread)
+  COMPONENTS atomic chrono date_time exception program_options regex system thread program_options)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 	
