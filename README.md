@@ -10,7 +10,7 @@ This version introduces three major changes:
 
 The original client/server applications are still available with the associated optimization tools. These can still be used for example to do some tests on PIR without developping an application or to use the optimization process in order to get interesting cryptographic and PIR parameters for a given setting.
 
-**If you use OSX, there are compilation/execution issues with v0.2.0-beta.** The old version is still available in the branch old-master and of course through previous [releases](https://github.com/XPIR-team/XPIR/releases). 
+**If you have compilation/execution issues please contact us.** The old version is still available in the branch old-master and of course through previous [releases](https://github.com/XPIR-team/XPIR/releases). 
 
 Introduction:
 =============
