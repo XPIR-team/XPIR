@@ -25,7 +25,7 @@ CONFIGURE="./configure CFLAGS=-I$PWD/local/include LDFLAGS=-L$PWD/local/lib --pr
 
   cd dependencies/mpfr-3.1.2 && $CONFIGURE && make && make install
   cd ../..
-  cd dependencies/gmp-6.0.0 && $CONFIGURE && make && make check && make install
+  cd dependencies/gmp-6.0.0 && $CONFIGURE --enable-cxx && make && make check && make install
   cd ../..
   LOCAL_PATH="$PWD/local/ "
   # Boostrap the build module

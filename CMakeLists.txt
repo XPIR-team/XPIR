@@ -10,13 +10,13 @@ endif()
 
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
-set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb")
+set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-fopenmp")
 set(BOOST_ROOT "./local")
 
 SET( Boost_USE_STATIC_LIBS FALSE )
 find_package(Boost 1.55.0  REQUIRED
-  COMPONENTS atomic chrono date_time exception program_options regex system thread)
+  COMPONENTS atomic chrono date_time exception program_options regex system thread program_options)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 	
