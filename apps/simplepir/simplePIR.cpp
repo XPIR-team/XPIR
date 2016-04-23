@@ -204,10 +204,10 @@ int main(int argc, char * argv[]) {
 
   // Simple test
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 1/7: database_size = 1ULL<<31; nb_files = 20;" << std::endl;
+  std::cout << "Test 1/7: database_size = 1ULL<<30; nb_files = 20;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
-  database_size = 1ULL<<31; nb_files = 20; maxFileBytesize = database_size/nb_files;
+  database_size = 1ULL<<30; nb_files = 20; maxFileBytesize = database_size/nb_files;
   DBGenerator db(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
