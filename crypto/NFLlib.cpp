@@ -528,7 +528,7 @@ mpz_t* NFLlib::poly2mpz(poly64 p)
   for(int cm = 0; cm < nbModuli;cm++) {
   	mpz_clear(tmpzbuffer[cm]);
   	}
-  free(tmpzbuffer);
+  delete[] tmpzbuffer;
   return resultmpz;
 }
 

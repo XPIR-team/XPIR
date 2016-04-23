@@ -38,8 +38,10 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   ******************************************************************************/
 	
   // Create the reply generator object
-	PIRReplyGenerator r_generator(params,*crypto,db);
-  r_generator.setPirParams(params);
+  // We could have also defined PIRReplyGenerator *r_generator(params,*crypto,db);
+  // But we prefer a pointer to show (below) how to use multiple generators for a given db
+  PIRReplyGenerator *r_generator = new PIRReplyGenerator(params,*crypto,db);
+  r_generator->setPirParams(params);
 
   // In a real application the client would pop the queries from q with popQuery and 
   // send them through the network and the server would receive and push them into s 
@@ -47,7 +49,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   char* query_element;
   while (q_generator.popQuery(&query_element))
   {
-    r_generator.pushQuery(query_element);
+    r_generator->pushQuery(query_element);
   }
  
 	// Import database
@@ -58,18 +60,54 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   std::cout << "SimplePIR: Importing database ..." << std::endl;
   // Warning aggregation is dealt with internally the bytes_per_db_element parameter here
   // is to be given WITHOUT multiplying it by params.alpha
-	imported_database* imported_db = r_generator.importData(/* uint64_t offset*/ 0, /*uint64_t
+	imported_database* imported_db = r_generator->importData(/* uint64_t offset*/ 0, /*uint64_t
     bytes_per_db_element */ db->getmaxFileBytesize());
   std::cout << "SimplePIR: Database imported" << std::endl;
 
 	// Once the query is known and the database imported launch the reply generation
   std::cout << "SimplePIR: Generating reply ..." << std::endl;
 	double start = omp_get_wtime();
-	r_generator.generateReply(imported_db);
+	r_generator->generateReply(imported_db);
 	double end = omp_get_wtime();
   std::cout << "SimplePIR: Reply generated in " << end-start << " seconds" << std::endl;
+
+  /********************************************************************************
+   * Advanced example: uncomment it to test
+   * The object imported_db is separated from r_generator in purpose
+   * Here is an example on how to use the same imported_db for multiple queries
+   * DO NOT try to use the same reply generator more than once, this causes issues
+   * ******************************************************************************/
+  /*
+  // Generate 3 replies from 3 queries
+  for (int i = 0 ; i < 3 ; i++){
+
+    // Pop (and drop for this simple example) the generated reply
+    char* reply_element_tmp;
+    while (r_generator->popReply(&reply_element_tmp)){
+      free(reply_element_tmp);
+    }
+
+    // Free memory and the r_generator object
+    r_generator->freeQueries();
+    delete r_generator;
 	
+    // Create and initialize a new generator object
+    r_generator = new PIRReplyGenerator(params,*crypto,db);
+    r_generator->setPirParams(params);
 	
+    // Generate a new query
+  	q_generator.generateQuery(chosen_element);
+
+    // Push it to the reply generator
+    while (q_generator.popQuery(&query_element))
+    {
+      r_generator->pushQuery(query_element);
+    }
+
+    // Generate again the reply
+	  r_generator->generateReply(imported_db);
+  }
+  */
 
   /******************************************************************************
   * Reply extraction phase (client-side)
@@ -80,11 +118,11 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   // In a real application the server would pop the replies from s with popReply and 
   // send them through the network together with nbRepliesGenerated and aggregated_maxFileSize 
   // and the client would receive the replies and push them into r using pushEncryptedReply
-  std::cout << "SimplePIR: "<< r_generator.getnbRepliesGenerated()<< " Replies generated " << std::endl;
+  std::cout << "SimplePIR: "<< r_generator->getnbRepliesGenerated()<< " Replies generated " << std::endl;
 
   uint64_t clientside_maxFileBytesize = db->getmaxFileBytesize();
   char* reply_element;
-  while (r_generator.popReply(&reply_element))
+  while (r_generator->popReply(&reply_element))
   {
     r_extractor->pushEncryptedReply(reply_element);
   }
@@ -127,7 +165,8 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   ******************************************************************************/
   
   delete imported_db;
-  r_generator.freeQueries();
+  r_generator->freeQueries();
+  delete r_generator;
 
   
 	return fail;
@@ -163,7 +202,7 @@ int main(int argc, char * argv[]) {
   // maxFileBytesize = database_size/nb_files;
 
   // Simple test
-  database_size = 1ULL<<31; nb_files = 20; maxFileBytesize = database_size/nb_files;
+  database_size = 1ULL<<25; nb_files = 20; maxFileBytesize = database_size/nb_files;
   DBGenerator db(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
@@ -173,7 +212,6 @@ int main(int argc, char * argv[]) {
   params.crypto_params = "LWE:80:2048:120"; 
   tests_failed |= run(&db, chosen_element, params);
   
- 
   // Test with aggregation
   // WARNING we must provide the representation of the database GIVEN recursion and aggregation
   // as here we have 100 elements and aggregate them in a unique group we have params.n[0]=1
@@ -224,7 +262,6 @@ int main(int argc, char * argv[]) {
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
   params.crypto_params = "LWE:80:2048:120";
   tests_failed |= run(&db7, chosen_element, params);
-
   if (tests_failed) 
   {
     std::cout << "WARNING : at least one tests failed" << std::endl;
