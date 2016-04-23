@@ -31,7 +31,7 @@ if [[ -e check.repo ]]
 then
   echo "Check repo exists, not rebuilding it"
   echo "Remove it manually if you want it rebuilt"
-  return
+  exit 
 fi
 
 mkdir check.repo
