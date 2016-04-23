@@ -27,6 +27,13 @@ ONE_GBIT=1024000000
 #files: 1kbits, 100kbits, 10mbits 1gbit
 #bases: 1Mbits, 10M, 100M, 1G, 10G
 
+if [[ -e check.repo ]]
+then
+  echo "Check repo exists, not rebuilding it"
+  echo "Remove it manually if you want it rebuilt"
+  return
+fi
+
 mkdir check.repo
 cp -r ../client/exp check.repo/
 cd check.repo

@@ -140,7 +140,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
     outptr+=r_extractor->getPlaintextReplyBytesize();
     free(tmp);
   }
-  // Result is in ... result  
+  // Result is in ... result
   
 
   /******************************************************************************
@@ -167,7 +167,8 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   delete imported_db;
   r_generator->freeQueries();
   delete r_generator;
-
+  free(result);
+  free(db_element);
   
 	return fail;
 	
@@ -202,7 +203,8 @@ int main(int argc, char * argv[]) {
   // maxFileBytesize = database_size/nb_files;
 
   // Simple test
-  database_size = 1ULL<<25; nb_files = 20; maxFileBytesize = database_size/nb_files;
+  std::cout << "Test 1/7: database_size = 1ULL<<31; nb_files = 20; params.alpha = 1; params.d = 1;params.crypto_params = LWE:80:2048:120;" << std::endl; 
+  database_size = 1ULL<<31; nb_files = 20; maxFileBytesize = database_size/nb_files;
   DBGenerator db(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
@@ -215,6 +217,7 @@ int main(int argc, char * argv[]) {
   // Test with aggregation
   // WARNING we must provide the representation of the database GIVEN recursion and aggregation
   // as here we have 100 elements and aggregate them in a unique group we have params.n[0]=1
+  std::cout << "Test 2/7: database_size = 1ULL<<25; nb_files = 100; params.alpha = 100; params.d = 1;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
   DBGenerator db2(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 0;
@@ -223,6 +226,7 @@ int main(int argc, char * argv[]) {
   tests_failed |= run(&db2, chosen_element, params);
   
   // Test with recursion 2
+  std::cout << "Test 3/7: database_size = 1ULL<<25; nb_files = 100; params.alpha = 1; params.d = 2;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
   DBGenerator db3(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
@@ -231,6 +235,7 @@ int main(int argc, char * argv[]) {
   tests_failed |= run(&db3, chosen_element, params);
   
   // Test with recursion 2 and aggregation
+  std::cout << "Test 4/7: database_size = 1ULL<<25; nb_files = 100; params.alpha = 2; params.d = 2;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
   DBGenerator db4(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
@@ -239,6 +244,7 @@ int main(int argc, char * argv[]) {
   tests_failed |= run(&db4, chosen_element, params);
   
   // Test with recursion 3
+  std::cout << "Test 5/7: database_size = 1ULL<<25; nb_files = 100; params.alpha = 1; params.d = 3;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
   DBGenerator db5(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
@@ -247,6 +253,7 @@ int main(int argc, char * argv[]) {
   tests_failed |= run(&db5, chosen_element, params);
   
   // Test with a DBDirectoryProcessor splitting a big real file
+  std::cout << "Test 6/7: DBDirectoryProcessor with split; database_size = 1ULL<<25; nb_files = 4; params.alpha = 1; params.d = 1;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   database_size = 1ULL<<25; nb_files = 4; maxFileBytesize = database_size/nb_files;
   DBDirectoryProcessor db6(/*split the bit file in*/ nb_files /*files*/);
   chosen_element = 3;
@@ -255,6 +262,7 @@ int main(int argc, char * argv[]) {
   tests_failed |= run(&db6, chosen_element, params);
   
   // Test with a DBDirectoryProcessor reading real files
+  std::cout << "Test 7/7: DBDirectoryProcessor without split; params.alpha = 1; params.d = 1;params.crypto_params = LWE:80:2048:120;" << std::endl; 
   DBDirectoryProcessor db7;
   database_size = db7.getDBSizeBits()/8; nb_files = db7.getNbStream(); 
   maxFileBytesize = database_size/nb_files;
@@ -262,6 +270,7 @@ int main(int argc, char * argv[]) {
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
   params.crypto_params = "LWE:80:2048:120";
   tests_failed |= run(&db7, chosen_element, params);
+
   if (tests_failed) 
   {
     std::cout << "WARNING : at least one tests failed" << std::endl;

@@ -75,7 +75,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
 
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];
 
-	input_data = new lwe_in_data[theoretical_files_nbr];
+	input_data = (lwe_in_data *) malloc(sizeof(lwe_in_data)*theoretical_files_nbr);
 	char *rawBits = (char*)calloc(fileByteSize*pirParam.alpha, sizeof(char));
 
 	currentMaxNbPolys=0;

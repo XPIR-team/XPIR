@@ -7,6 +7,7 @@
       free(((lwe_in_data *)imported_database_ptr)[i].p[0]);
       free(((lwe_in_data *)imported_database_ptr)[i].p);
     }
+    free(imported_database_ptr);
   }
 
 

@@ -449,7 +449,9 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
 	    mpz_clear(tmprez[i]);
 	  }
     
-    free(tmprez);
+    delete[] tmprez;
+    mpz_clear(moduliProduct);
+    mpz_clear(tmpz);
   } else { // nbModuli=1
 	
 	
