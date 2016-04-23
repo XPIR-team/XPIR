@@ -273,11 +273,15 @@ int main(int argc, char * argv[]) {
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 4; maxFileBytesize = database_size/nb_files;
-  DBDirectoryProcessor db6(/*split the bit file in*/ nb_files /*files*/);
-  chosen_element = 3;
-  params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
-  params.crypto_params = "LWE:80:2048:120";
-  tests_failed |= run(&db6, chosen_element, params);
+  DBDirectoryProcessor db6(/*split the first file in*/ nb_files /*files*/);
+  if (db6.getErrorStatus()==true){
+    std::cout << "SimplePIR : Error with db directory skipping test ..." << std::endl << std::endl;
+  } else {
+    chosen_element = 3;
+    params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
+    params.crypto_params = "LWE:80:2048:120";
+    tests_failed |= run(&db6, chosen_element, params);
+  }
   
   // Test with a DBDirectoryProcessor reading real files
   std::cout << "======================================================================" << std::endl;
@@ -285,12 +289,16 @@ int main(int argc, char * argv[]) {
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   DBDirectoryProcessor db7;
-  database_size = db7.getDBSizeBits()/8; nb_files = db7.getNbStream(); 
-  maxFileBytesize = database_size/nb_files;
-  chosen_element = 0;
-  params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
-  params.crypto_params = "LWE:80:2048:120";
-  tests_failed |= run(&db7, chosen_element, params);
+  if (db6.getErrorStatus()==true){
+    std::cout << "SimplePIR : Error with db directory skipping test ..." << std::endl << std::endl;
+  } else {
+    database_size = db7.getDBSizeBits()/8; nb_files = db7.getNbStream(); 
+    maxFileBytesize = database_size/nb_files;
+    chosen_element = 0;
+    params.alpha = 1; params.d = 1; params.n[0] = nb_files; 
+    params.crypto_params = "LWE:80:2048:120";
+    tests_failed |= run(&db7, chosen_element, params);
+  }
 
   if (tests_failed) 
   {

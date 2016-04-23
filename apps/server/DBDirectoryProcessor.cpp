@@ -56,11 +56,16 @@ DBDirectoryProcessor::DBDirectoryProcessor() : filesSplitting(false) {
 			}
 		}
 		std::cout << "DBDirectoryProcessor: " << i << " entries processed" << std::endl;
+    if (i==0) {
+      std::cout <<"DBDirectoryProcessor: No entries in the database" << std::endl;
+      error = true;
+    }
 		closedir (dir);
 	}
 	else // If there was a problem opening the directory
 	{
 		std::cout << "DBDirectoryProcessor: Error opening database directory" << std::endl;
+    error = true;
 	}
 
 	std::cout << "DBDirectoryProcessor: The size of the database is " << maxFileBytesize*file_list.size() << " bytes" << std::endl;
@@ -100,7 +105,7 @@ DBDirectoryProcessor::DBDirectoryProcessor(uint64_t nbStreams) : filesSplitting(
 		if(maxFileBytesize==0) {
 			std::cout << "DBDirectoryProcessor: ERROR cannot split a file en less than one byte elements!" << std::endl;
 			std::cout << "DBDirectoryProcessor: file " << realFileName << " is only "<< realFileSize << " long" << std::endl;
-			exit(1);
+			error = true;
 		}
 
 		closedir (dir);
@@ -111,8 +116,8 @@ DBDirectoryProcessor::DBDirectoryProcessor(uint64_t nbStreams) : filesSplitting(
 	else // If there was a problem opening the directory
 	{
 		std::cout << "DBDirectoryProcessor: Error when opening directory " <<directory<< std::endl;
-		exit(1);
-	}
+	  error = true;
+  }
 
 #ifdef DEBUG
 	std::cout << "maxFileBytesize." <<maxFileBytesize<< std::endl;
@@ -160,6 +165,9 @@ uint64_t DBDirectoryProcessor::getNbStream() {
 }
 uint64_t DBDirectoryProcessor::getmaxFileBytesize() {
 	return maxFileBytesize;
+}
+bool DBDirectoryProcessor::getErrorStatus() {
+	return error;
 }
 
 std::ifstream* DBDirectoryProcessor::openStream(uint64_t streamNb, uint64_t requested_offset) {
