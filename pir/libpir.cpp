@@ -85,6 +85,20 @@
 		currentReply=0;
   }
 
+#if 0
+  void PIRReplyGenerator::reinit()
+  {
+		freeResult();
+    freeQueries();
+    
+    PIRReplyGeneratorNFL_internal::setCryptoMethod(&cryptoMethod_);
+    PIRReplyGeneratorNFL_internal::initQueriesBuffer();
+    PIRReplyGeneratorNFL_internal::setPirParams(param);
+		nbRepliesToHandle=0;
+		nbRepliesGenerated=0;
+		currentReply=0;
+  }
+#endif
 
   void PIRReplyGenerator::pushQuery(char* rawQuery) {
 		PIRReplyGeneratorNFL_internal::pushQuery(rawQuery);
@@ -129,7 +143,7 @@
   }
 
   void PIRReplyGenerator::freeQueries(){
-    freeQuery();
+    PIRReplyGeneratorNFL_internal::freeQueries();
   }
 
 	

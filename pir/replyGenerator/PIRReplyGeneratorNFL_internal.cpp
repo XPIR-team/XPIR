@@ -39,7 +39,7 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
  **/
 PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& param, DBHandler* db):
   lwe(false),
-  currentMaxNbPolys(1),
+  currentMaxNbPolys(0),
   GenericPIRReplyGenerator(param,db),
   current_query_index(0),
   current_dim_index(0)
@@ -278,7 +278,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*database_size/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 
   return database_wrapper;
 }
@@ -322,7 +322,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 }
 
 
@@ -356,7 +356,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 }
 
 
@@ -377,9 +377,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
   uint64_t old_poly_nbr = 1;
   
   // Allocate memory for the reply array
-  //repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
-  if(repliesAmount==0) 
-    repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  if (repliesArray != NULL) free(repliesArray);
   repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
 
 
@@ -436,26 +434,22 @@ void PIRReplyGeneratorNFL_internal::generateReply()
     /*****************/
     /*MEMORY CLEANING*/
     /*****************/
+#ifdef DEBUG
     if ( i > 0)
     {
-#ifdef DEBUG
       cout << "PIRReplyGeneratorNFL_internal: reply_elt_nbr_OLD: " << old_reply_elt_nbr << endl;
-#endif
-     // for (unsigned int j = 0 ; j < old_reply_elt_nbr ; j++) {
-     //   free(in_data[j].p[0]);
-     //   free(in_data[j].p);
-     // }
-     // delete[] in_data;
     }
-  // When i i=> 2 clean old in_data.
+#endif
+    // When i=> 2 clean old in_data.
     if (i < pirParam.d - 1) { 
       old_poly_nbr = currentMaxNbPolys;
       in_data = fromResulttoInData(inter_reply, reply_elt_nbr, i);
     }
 
     for (uint64_t j = 0 ; j < reply_elt_nbr ; j++) {
-      for (uint64_t k = 0 ; (k < old_poly_nbr) && (i < pirParam.d - 1); k++) free(inter_reply[j][k].a);
-
+      for (uint64_t k = 0 ; (k < old_poly_nbr) && (i < pirParam.d - 1); k++){
+        free(inter_reply[j][k].a);
+      }
       delete[] inter_reply[j];
     }
     delete[] inter_reply; // allocated with a 'new' above. 
@@ -482,7 +476,7 @@ double PIRReplyGeneratorNFL_internal::generateReplySimulation(const PIRParameter
   generateReply();
   double result = omp_get_wtime() - start;
 
-  freeQuery();
+  freeQueries();
   freeInputData();
   freeResult();
   delete dbhandler;
@@ -513,7 +507,7 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
   }
   double result = omp_get_wtime() - start;
   std::cout << "PIRReplyGeneratorNFL_internal: Deserialize took " << result << " (omp)seconds" << std::endl;
-  freeQuery();
+  freeQueries();
   freeInputData();
   freeResult();
   delete dbhandler;
@@ -824,19 +818,6 @@ size_t PIRReplyGeneratorNFL_internal::getTotalSystemMemory()
 #endif
 }
 
-PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
-{
-  for (unsigned int i = 0; i < pirParam.d; i++)
-  {
-    delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
-    delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
-    delete[] queriesBuf[i];
-  }
-  delete[] queriesBuf;//allocated in intQueriesBuf with new.
-  freeResult();
-}
-
-
 void PIRReplyGeneratorNFL_internal::setPirParams(PIRParameters& param)
 {
   pirParam = param;
@@ -870,13 +851,19 @@ void PIRReplyGeneratorNFL_internal::freeInputData()
 #endif
 }
 
-void PIRReplyGeneratorNFL_internal::freeQuery()
+void PIRReplyGeneratorNFL_internal::freeQueries()
 {
   for (unsigned int i = 0; i < pirParam.d; i++)
   {
     for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) {
-		  free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
-		  free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
+		  if (queriesBuf[i][0][j].a != NULL){
+        free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
+        queriesBuf[i][0][j].a = NULL;
+      }
+		  if (queriesBuf[i][1][j].a != NULL){
+        free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
+        queriesBuf[i][1][j].a = NULL;
+      }
 	  }
   }
   current_query_index = 0;
@@ -885,6 +872,32 @@ void PIRReplyGeneratorNFL_internal::freeQuery()
   printf( "queriesBuf freed\n");
 #endif
   
+}
+
+void PIRReplyGeneratorNFL_internal::freeQueriesBuffer()
+{
+  for (unsigned int i = 0; i < pirParam.d; i++)
+  {
+    if (queriesBuf[i][0] != NULL){
+      delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
+      queriesBuf[i][0] = NULL;
+    }
+    if (queriesBuf[i][1] != NULL){
+      delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
+      queriesBuf[i][1] = NULL;
+    }
+    if (queriesBuf[i] != NULL){
+      delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
+      queriesBuf[i] = NULL;
+    }
+    delete[] queriesBuf[i];
+  }
+  if (queriesBuf != NULL){
+    delete[] queriesBuf; //allocated in intQueriesBuf with new.
+    queriesBuf = NULL;
+  }
+
+  delete[] queriesBuf;//allocated in intQueriesBuf with new.
 }
 
 void PIRReplyGeneratorNFL_internal::freeResult()
@@ -900,3 +913,13 @@ void PIRReplyGeneratorNFL_internal::freeResult()
     repliesArray=NULL;
   }
 }
+
+
+PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
+{
+  freeQueries();
+  freeQueriesBuffer();
+  freeResult();
+}
+
+
