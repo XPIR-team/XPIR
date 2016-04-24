@@ -41,8 +41,11 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& par
   lwe(false),
   currentMaxNbPolys(0),
   GenericPIRReplyGenerator(param,db),
+  queriesBuf(NULL),
   current_query_index(0),
-  current_dim_index(0)
+  current_dim_index(0),
+  input_data(NULL),
+  cryptoMethod(NULL)
 {
   // cryptoMethod will be set later by setCryptoMethod
 }
@@ -377,7 +380,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
   uint64_t old_poly_nbr = 1;
   
   // Allocate memory for the reply array
-  if (repliesArray != NULL) free(repliesArray);
+  if (repliesArray != NULL) freeResult();
   repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
 
 
@@ -449,10 +452,13 @@ void PIRReplyGeneratorNFL_internal::generateReply()
     for (uint64_t j = 0 ; j < reply_elt_nbr ; j++) {
       for (uint64_t k = 0 ; (k < old_poly_nbr) && (i < pirParam.d - 1); k++){
         free(inter_reply[j][k].a);
+        inter_reply[j][k].a = NULL;
       }
       delete[] inter_reply[j];
+      inter_reply[j] = NULL;
     }
     delete[] inter_reply; // allocated with a 'new' above. 
+    inter_reply = NULL;
   }
 
   // Compute execution time
@@ -463,7 +469,6 @@ void PIRReplyGeneratorNFL_internal::generateReply()
 double PIRReplyGeneratorNFL_internal::generateReplySimulation(const PIRParameters& pir_params, uint64_t plaintext_nbr)
 {
   setPirParams((PIRParameters&)pir_params);
-  initQueriesBuffer();
   pushFakeQuery();
   
   importFakeData(plaintext_nbr);
@@ -489,7 +494,6 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
 {
   NFLlib *nflptr = &(cryptoMethod->getnflInstance());
   setPirParams((PIRParameters&)pir_params);
-  initQueriesBuffer();
   pushFakeQuery();
   importFakeData(plaintext_nbr);
 
@@ -635,9 +639,7 @@ lwe_in_data* PIRReplyGeneratorNFL_internal::fromResulttoInData(lwe_cipher** inte
 														currentMaxNbPolys, 
 														cryptoMethod->getPublicParameters().getCiphertextBitsize(), 
 														in_data2b[i].nbPolys);
-      //delete[] inter_reply[i]; free in generateReplyGeneric
     }
-    //delete[] inter_reply;
     free(bufferOfBuffers);
 
     currentMaxNbPolys = in_data2b_nbr_polys; 
@@ -820,8 +822,11 @@ size_t PIRReplyGeneratorNFL_internal::getTotalSystemMemory()
 
 void PIRReplyGeneratorNFL_internal::setPirParams(PIRParameters& param)
 {
+  freeQueries();
+  freeQueriesBuffer();
   pirParam = param;
   cryptoMethod->setandgetAbsBitPerCiphertext(pirParam.n[0]);
+  initQueriesBuffer();
 }
 
 
@@ -834,18 +839,26 @@ void PIRReplyGeneratorNFL_internal::setCryptoMethod(CryptographicSystem* cm)
 
 void PIRReplyGeneratorNFL_internal::freeInputData()
 {
+#ifdef DEBUG
+  std:cout << "PIRReplyGeneratorNFL_internal: freeing input_data" << std::endl;
+#endif
   uint64_t theoretical_files_nbr = 1;
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];
 
-  for (unsigned int i = 0 ; i < theoretical_files_nbr ; i++){
-#ifdef DEBUG
-  printf( "PIRReplyGeneratorNFL_internal: freeing input_data[%d]\n",i);
-#endif
-    free(input_data[i].p[0]);
-    free(input_data[i].p);
+  if (input_data != NULL){
+    for (unsigned int i = 0 ; i < theoretical_files_nbr ; i++){
+      if (input_data[i].p != NULL){
+        if (input_data[i].p[0] != NULL){
+          free(input_data[i].p[0]);
+          input_data[i].p[0] = NULL;
+        }
+        free(input_data[i].p);
+        input_data[i].p = NULL;
+      }
+    }
+    delete[] input_data;
+    input_data = NULL;
   }
-  delete[] input_data;
-
 #ifdef DEBUG
   printf( "PIRReplyGeneratorNFL_internal: input_data freed\n");
 #endif
@@ -855,12 +868,15 @@ void PIRReplyGeneratorNFL_internal::freeQueries()
 {
   for (unsigned int i = 0; i < pirParam.d; i++)
   {
-    for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) {
-		  if (queriesBuf[i][0][j].a != NULL){
+    for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) 
+    {
+		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][0][j].a != NULL)
+      {
         free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
         queriesBuf[i][0][j].a = NULL;
       }
-		  if (queriesBuf[i][1][j].a != NULL){
+		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][1][j].a != NULL)
+      {
         free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
         queriesBuf[i][1][j].a = NULL;
       }
@@ -876,28 +892,24 @@ void PIRReplyGeneratorNFL_internal::freeQueries()
 
 void PIRReplyGeneratorNFL_internal::freeQueriesBuffer()
 {
-  for (unsigned int i = 0; i < pirParam.d; i++)
-  {
-    if (queriesBuf[i][0] != NULL){
-      delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
-      queriesBuf[i][0] = NULL;
+  if (queriesBuf != NULL){ 
+    for (unsigned int i = 0; i < pirParam.d; i++){
+      if (queriesBuf[i] != NULL){
+        if (queriesBuf[i][0] != NULL){
+          delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
+          queriesBuf[i][0] = NULL;
+        }
+        if (queriesBuf[i][1] != NULL){
+          delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
+          queriesBuf[i][1] = NULL;
+        }
+        delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
+        queriesBuf[i] = NULL;
+      }
     }
-    if (queriesBuf[i][1] != NULL){
-      delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
-      queriesBuf[i][1] = NULL;
-    }
-    if (queriesBuf[i] != NULL){
-      delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
-      queriesBuf[i] = NULL;
-    }
-    delete[] queriesBuf[i];
-  }
-  if (queriesBuf != NULL){
     delete[] queriesBuf; //allocated in intQueriesBuf with new.
     queriesBuf = NULL;
   }
-
-  delete[] queriesBuf;//allocated in intQueriesBuf with new.
 }
 
 void PIRReplyGeneratorNFL_internal::freeResult()
@@ -920,6 +932,8 @@ PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
   freeQueries();
   freeQueriesBuffer();
   freeResult();
+  mutex.try_lock();
+  mutex.unlock();
 }
 
 

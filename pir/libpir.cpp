@@ -78,28 +78,10 @@
 	: PIRReplyGeneratorNFL_internal (param,db)
   {
 		PIRReplyGeneratorNFL_internal::setCryptoMethod(&cryptoMethod_);
-    PIRReplyGeneratorNFL_internal::initQueriesBuffer();
     PIRReplyGeneratorNFL_internal::setPirParams(param);
-		nbRepliesToHandle=0;
-		nbRepliesGenerated=0;
-		currentReply=0;
   }
 
-#if 0
-  void PIRReplyGenerator::reinit()
-  {
-		freeResult();
-    freeQueries();
-    
-    PIRReplyGeneratorNFL_internal::setCryptoMethod(&cryptoMethod_);
-    PIRReplyGeneratorNFL_internal::initQueriesBuffer();
-    PIRReplyGeneratorNFL_internal::setPirParams(param);
-		nbRepliesToHandle=0;
-		nbRepliesGenerated=0;
-		currentReply=0;
-  }
-#endif
-
+  
   void PIRReplyGenerator::pushQuery(char* rawQuery) {
 		PIRReplyGeneratorNFL_internal::pushQuery(rawQuery);
   }
@@ -123,6 +105,13 @@
 
   void PIRReplyGenerator::generateReply(const imported_database* database)
   {
+    // Init
+		nbRepliesToHandle=0;
+		nbRepliesGenerated=0;
+		currentReply=0;
+    freeResult();
+
+    // Test memory
 		uint64_t usable_memory = getTotalSystemMemory();
 		nbRepliesGenerated=nbRepliesToHandle=computeReplySizeInChunks(database->beforeImportElementBytesize);
 		uint64_t polysize = cryptoMethod->getpolyDegree() * cryptoMethod->getnbModuli()*sizeof(uint64_t);
@@ -136,8 +125,11 @@
     
    	// The internal generator is locked by default waiting for the query to be received 
     // in this API we let the user deal with synchronisation so the lock is not needed
+    PIRReplyGeneratorNFL_internal::mutex.try_lock();
     PIRReplyGeneratorNFL_internal::mutex.unlock();
-
+    
+    // Define the reply size
+    repliesAmount = computeReplySizeInChunks(database->beforeImportElementBytesize);
 		PIRReplyGeneratorNFL_internal::generateReply();
 
   }

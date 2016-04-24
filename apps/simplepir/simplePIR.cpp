@@ -41,7 +41,6 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   // We could have also defined PIRReplyGenerator *r_generator(params,*crypto,db);
   // But we prefer a pointer to show (below) how to use multiple generators for a given db
   PIRReplyGenerator *r_generator = new PIRReplyGenerator(params,*crypto,db);
-  r_generator->setPirParams(params);
 
   // In a real application the client would pop the queries from q with popQuery and 
   // send them through the network and the server would receive and push them into s 
@@ -78,6 +77,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
    * DO NOT try to use the same reply generator more than once, this causes issues
    * ******************************************************************************/
 
+#if 0
   // Generate 3 replies from 3 queries
   for (int i = 0 ; i < 3 ; i++){
 
@@ -87,14 +87,18 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
       free(reply_element_tmp);
     }
 
-    // Free memory and the r_generator object
-    r_generator->freeQueries();
-    //r_generator->freeResult();
+    // If you are unable to reuse a r_generator object (e.g. if you want 
+    // to change the crypto object) you can always recreate a new generator
     //delete r_generator;
-	
-    // Create and initialize a new generator object
     //r_generator = new PIRReplyGenerator(params,*crypto,db);
-    //r_generator->setPirParams(params);
+	
+    // In this example we want to use the same generator for 
+    // multiply queries. Before giving a new query to r_generator
+    // we must free the previous one. 
+    r_generator->freeQueries();
+    
+    // It is also possible to change the pir parameters with the 
+    // (unexposed) setPirParams(PIRParameters newparams) function
 	
     // Generate a new query
   	q_generator.generateQuery(chosen_element);
@@ -108,6 +112,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
     // Generate again the reply
 	  r_generator->generateReply(imported_db);
   }
+#endif
 
 
   /******************************************************************************

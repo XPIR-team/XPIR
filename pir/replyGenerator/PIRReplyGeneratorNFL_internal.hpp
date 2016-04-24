@@ -50,8 +50,8 @@ private:
     void pushFakeQuery();
     void freeInputData();
     void freeFakeInputData();
-    void freeResult();
 protected:
+    void freeResult();
     void freeQueries();
     void freeQueriesBuffer();
     void generateReply();
