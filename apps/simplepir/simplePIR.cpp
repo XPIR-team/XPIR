@@ -77,7 +77,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
    * Here is an example on how to use the same imported_db for multiple queries
    * DO NOT try to use the same reply generator more than once, this causes issues
    * ******************************************************************************/
-  /*
+
   // Generate 3 replies from 3 queries
   for (int i = 0 ; i < 3 ; i++){
 
@@ -89,11 +89,12 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
 
     // Free memory and the r_generator object
     r_generator->freeQueries();
-    delete r_generator;
+    //r_generator->freeResult();
+    //delete r_generator;
 	
     // Create and initialize a new generator object
-    r_generator = new PIRReplyGenerator(params,*crypto,db);
-    r_generator->setPirParams(params);
+    //r_generator = new PIRReplyGenerator(params,*crypto,db);
+    //r_generator->setPirParams(params);
 	
     // Generate a new query
   	q_generator.generateQuery(chosen_element);
@@ -107,7 +108,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
     // Generate again the reply
 	  r_generator->generateReply(imported_db);
   }
-  */
+
 
   /******************************************************************************
   * Reply extraction phase (client-side)
@@ -207,7 +208,7 @@ int main(int argc, char * argv[]) {
   std::cout << "Test 1/7: database_size = 1ULL<<30; nb_files = 20;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
-  database_size = 1ULL<<30; nb_files = 20; maxFileBytesize = database_size/nb_files;
+  database_size = 1ULL<<20; nb_files = 20; maxFileBytesize = database_size/nb_files;
   DBGenerator db(nb_files, maxFileBytesize, /*bool silent*/ false); 
   chosen_element = 3;
   params.alpha = 1; params.d = 1; params.n[0] = nb_files; 

@@ -201,6 +201,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
   database_wrapper.imported_database_ptr = NULL;
   database_wrapper.nbElements = 0;
   database_wrapper.polysPerElement = 0;
+  database_wrapper.beforeImportElementBytesize = 0;
 
   // Don't use more than half of the computer's memory 
   usable_memory = getTotalSystemMemory()/2;
@@ -258,12 +259,15 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
     } 
 
     boost::mutex::scoped_lock l(mutex);
+    repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
     generateReply();
     end = omp_get_wtime();
 
     if(keep_imported_data && iteration == nbr_of_iterations - 1)  // && added for Perf test but is no harmful
     {
       database_wrapper.imported_database_ptr = (void*)input_data;
+      database_wrapper.beforeImportElementBytesize = dbhandler->getmaxFileBytesize();
+      database_wrapper.nbElements = dbhandler->getNbStream();
     } 
     else 
     {
@@ -289,16 +293,17 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
   currentMaxNbPolys = database.polysPerElement;
 	boost::mutex::scoped_lock l(mutex);
   double start = omp_get_wtime();
+  repliesAmount = computeReplySizeInChunks(database.beforeImportElementBytesize);
   generateReply();
 #else
   uint64_t max_readable_size, database_size, nbr_of_iterations;
 
-  database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
-  max_readable_size = 1280000000UL/dbhandler->getNbStream();
+  database_size = database.beforeImportElementBytesize * database.nbElements;
+  max_readable_size = 1280000000UL/database.nbElements;
   // Ensure it is not larger than maxfilebytesize
-  max_readable_size = min(max_readable_size, dbhandler->getmaxFileBytesize());
+  max_readable_size = min(max_readable_size, database.beforeImportElementBytesize);
   // Given readable size we get how many iterations we need
-  nbr_of_iterations = ceil((double)dbhandler->getmaxFileBytesize()/max_readable_size);
+  nbr_of_iterations = ceil((double)database.beforeImportElementBytesize/max_readable_size);
 
 
   boost::mutex::scoped_lock l(mutex);
@@ -308,6 +313,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
 
     input_data = (lwe_in_data*) database.imported_database_ptr;
     currentMaxNbPolys = database.polysPerElement;
+    repliesAmount = computeReplySizeInChunks(database.beforeImportElementBytesize);
     generateReply();
   }
   freeInputData();
@@ -327,12 +333,12 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 {
   uint64_t max_readable_size, database_size, nbr_of_iterations;
 
-  database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
-  max_readable_size = 1280000000UL/dbhandler->getNbStream();
+  database_size = database->beforeImportElementBytesize * database->nbElements;
+  max_readable_size = 1280000000UL/database->nbElements;
   // Ensure it is not larger than maxfilebytesize
-  max_readable_size = min(max_readable_size, dbhandler->getmaxFileBytesize());
+  max_readable_size = min(max_readable_size, database->beforeImportElementBytesize);
   // Given readable size we get how many iterations we need
-  nbr_of_iterations = ceil((double)dbhandler->getmaxFileBytesize()/max_readable_size);
+  nbr_of_iterations = ceil((double)database->beforeImportElementBytesize/max_readable_size);
 
 
   boost::mutex::scoped_lock l(mutex);
@@ -342,6 +348,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 
     input_data = (lwe_in_data*) database->imported_database_ptr;
     currentMaxNbPolys = database->polysPerElement;
+    repliesAmount = computeReplySizeInChunks(database->beforeImportElementBytesize);
     generateReply();
   }
   freeInputData();
@@ -370,7 +377,9 @@ void PIRReplyGeneratorNFL_internal::generateReply()
   uint64_t old_poly_nbr = 1;
   
   // Allocate memory for the reply array
-  repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  //repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  if(repliesAmount==0) 
+    repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
   repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
 
 
@@ -466,8 +475,7 @@ double PIRReplyGeneratorNFL_internal::generateReplySimulation(const PIRParameter
   importFakeData(plaintext_nbr);
 
 
-  uint64_t repliesAmount = computeReplySizeInChunks(cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
-  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+  repliesAmount = computeReplySizeInChunks(plaintext_nbr*cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
 	repliesIndex = 0;
 
   double start = omp_get_wtime();
@@ -818,6 +826,13 @@ size_t PIRReplyGeneratorNFL_internal::getTotalSystemMemory()
 
 PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
 {
+  for (unsigned int i = 0; i < pirParam.d; i++)
+  {
+    delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
+    delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
+    delete[] queriesBuf[i];
+  }
+  delete[] queriesBuf;//allocated in intQueriesBuf with new.
   freeResult();
 }
 
@@ -859,20 +874,13 @@ void PIRReplyGeneratorNFL_internal::freeQuery()
 {
   for (unsigned int i = 0; i < pirParam.d; i++)
   {
-#ifdef SHOUP
-      for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) {
+    for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) {
 		  free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
 		  free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
 	  }
-      delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
-      delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
-      delete[] queriesBuf[i];
-#else
-	  for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) free(queriesBuf[i][j].a); //only free a because a and b and contingus, see pushQuery
-      delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
-#endif
   }
-  delete[] queriesBuf;//allocated in intQueriesBuf with new.
+  current_query_index = 0;
+  current_dim_index = 0;
 #ifdef DEBUG
   printf( "queriesBuf freed\n");
 #endif

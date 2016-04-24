@@ -120,9 +120,9 @@
 		input_data = (lwe_in_data*) database->imported_database_ptr;
 		currentMaxNbPolys = database->polysPerElement;
     
-   		// The internal generator is locked by default waiting for the query to be received 
-    		// in this API we let the user deal with synchronisation so the lock is not needed
-    		PIRReplyGeneratorNFL_internal::mutex.unlock();
+   	// The internal generator is locked by default waiting for the query to be received 
+    // in this API we let the user deal with synchronisation so the lock is not needed
+    PIRReplyGeneratorNFL_internal::mutex.unlock();
 
 		PIRReplyGeneratorNFL_internal::generateReply();
 
