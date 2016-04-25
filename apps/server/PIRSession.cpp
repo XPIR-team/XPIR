@@ -406,10 +406,8 @@ void PIRSession::downloadWorker()
     {
       // Compute and allocate the size in bytes of a query ELEMENT of dimension j 
       msg_size = cryptoMethod->getPublicParameters().getQuerySizeFromRecLvl(j+1) / 8;
-      char buf[msg_size];
       boost::asio::socket_base::receive_buffer_size opt(65535);
       sessionSocket.set_option(opt);
-      auto boost_buffer = boost::asio::buffer(buf,msg_size); 
   //    boost_buffer = new boost::asio::buffer(buf, msg_size); 
 #ifdef DEBUG
       cout << "PIRSession: Size of the query element to be received is " << msg_size << endl;
@@ -419,6 +417,8 @@ void PIRSession::downloadWorker()
       // Iterate over all the elements of the query corresponding to the j-th dimension
       for (unsigned int i = 0; i < pirParam.n[j]; i++)
       {
+      char *buf = (char *) malloc(msg_size*sizeof(char));
+      auto boost_buffer = boost::asio::buffer(buf,msg_size); 
       if (i==0 && j == 0) cout << "PIRSession: Waiting for query elements ..." << endl;
         // Get a query element 
          //( async_read(sessionSocket, boost_buffer,boost::bind(&blo,boost::asio::placeholders::error)) );

@@ -173,6 +173,8 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
   delete imported_db;
   r_generator->freeQueries();
   delete r_generator;
+  delete r_extractor;
+  delete crypto;
   free(result);
   free(db_element);
   

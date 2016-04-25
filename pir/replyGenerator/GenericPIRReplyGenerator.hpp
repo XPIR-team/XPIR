@@ -45,7 +45,7 @@ class GenericPIRReplyGenerator
   protected:
 
 
-    PIRParameters emptyPIRParams;
+  PIRParameters emptyPIRParams;
 	PIRParameters& pirParam;
 	unsigned int maxChunkSize;
 	DBHandler* dbhandler;	

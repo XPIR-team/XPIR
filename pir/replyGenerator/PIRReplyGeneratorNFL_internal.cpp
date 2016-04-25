@@ -27,7 +27,13 @@
 //#define SNIFFER //Use this to activate a sniffer like behavior
 
 PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
-  lwe(false)
+  lwe(false),
+  currentMaxNbPolys(0),
+  queriesBuf(NULL),
+  current_query_index(0),
+  current_dim_index(0),
+  input_data(NULL),
+  cryptoMethod(NULL)
 {
 }
 
@@ -729,15 +735,14 @@ void PIRReplyGeneratorNFL_internal::initQueriesBuffer() {
 
 void PIRReplyGeneratorNFL_internal::pushFakeQuery()
 {
-  char* query_element = cryptoMethod->encrypt(0, 1); 
+  char* query_element;
 
   for (unsigned int dim  = 0 ; dim < pirParam.d ; dim++) {
     for(unsigned int j = 0 ; j < pirParam.n[dim] ; j++) {
+      query_element = cryptoMethod->encrypt(0, 1); 
       pushQuery(query_element, cryptoMethod->getPublicParameters().getCiphertextBitsize()/8, dim, j); 
     }
   }
-
-  free(query_element);
 }
 
 
@@ -875,8 +880,6 @@ void PIRReplyGeneratorNFL_internal::freeQueries()
     {
 		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][0][j].a != NULL)
       {
-  std::cout << "????????????????????????? " << queriesBuf[i][0][j].a << std::endl;
-        
         free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
         queriesBuf[i][0][j].a = NULL;
       }
