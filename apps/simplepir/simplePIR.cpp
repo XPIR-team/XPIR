@@ -77,7 +77,7 @@ bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
    * DO NOT try to use the same reply generator more than once, this causes issues
    * ******************************************************************************/
 
-#if 0
+#if 1
   // Generate 3 replies from 3 queries
   for (int i = 0 ; i < 3 ; i++){
 
@@ -223,6 +223,7 @@ int main(int argc, char * argv[]) {
   params.crypto_params = "LWE:80:2048:120"; 
   tests_failed |= run(&db, chosen_element, params);
   
+#if 0
   // Test with aggregation
   // WARNING we must provide the representation of the database GIVEN recursion and aggregation
   // as here we have 100 elements and aggregate them in a unique group we have params.n[0]=1
@@ -306,6 +307,7 @@ int main(int argc, char * argv[]) {
     tests_failed |= run(&db7, chosen_element, params);
   }
 
+#endif
   if (tests_failed) 
   {
     std::cout << "WARNING : at least one tests failed" << std::endl;

@@ -763,8 +763,11 @@ void PIRReplyGeneratorNFL_internal::pushQuery(char* rawQuery, unsigned int size,
   unsigned int nbModuli = cryptoMethod->getnbModuli();
   // Trick, we get both a and b at the same time, b needs to be set afterwards
   uint64_t *a,*b;
-  a = (poly64) calloc(size, 1);
-  memcpy(a,rawQuery,size);
+  
+  // We push the query we do not copy it 
+  //a = (poly64) calloc(size, 1);
+  //memcpy(a,rawQuery,size);
+  a = (poly64) rawQuery;
   if (lwe) b = a+nbModuli*polyDegree;
 #ifdef CRYPTO_DEBUG
 	std::cout<<"\nQuery received.a ";NFLTools::print_poly64(a,4);	
@@ -872,6 +875,8 @@ void PIRReplyGeneratorNFL_internal::freeQueries()
     {
 		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][0][j].a != NULL)
       {
+  std::cout << "????????????????????????? " << queriesBuf[i][0][j].a << std::endl;
+        
         free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
         queriesBuf[i][0][j].a = NULL;
       }

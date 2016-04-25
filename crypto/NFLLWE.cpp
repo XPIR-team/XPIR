@@ -275,6 +275,7 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 	NFLLWE_DEBUG_MESSAGE("Encrypting m: ",m, 4);
 
 	c->a = (poly64) calloc(polyDegree * 2 * nbModuli,  sizeof(uint64_t));
+  std::cout << "!!!!!!!!!!!!!!!!!!!!!!! " << c->a << std::endl;
 	c->b = c->a + polyDegree * nbModuli;
 
 	// tmpa and tmpb are used to access the nbModuli polynoms of the CRT
