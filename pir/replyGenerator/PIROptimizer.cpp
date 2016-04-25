@@ -145,7 +145,7 @@ std::string PIROptimizer::computeOptimData(const std::string& crypto_name)
     optim_data2write += crypto_param + " " + out.str() + "\n";
   }
 
-  //delete generator_ptr;
+  delete generator_ptr;
   delete crypto_ptr;
 
   return optim_data2write;
@@ -166,6 +166,7 @@ double PIROptimizer::getAbs1PlaintextTime(HomomorphicCrypto* crypto_ptr, Generic
 
   do
   {
+    generator->mutex.try_lock();
     generator->mutex.unlock();
     result = generator->generateReplySimulation(pir_params, plaintext_nbr);
     plaintext_nbr *= 2;
@@ -193,6 +194,7 @@ double PIROptimizer::getPrecompute1PlaintextTime(HomomorphicCrypto* crypto_ptr, 
 
   do
   {
+    generator->mutex.try_lock();
     generator->mutex.unlock();
     result = generator->precomputationSimulation(pir_params, plaintext_nbr);
     plaintext_nbr *= 2;

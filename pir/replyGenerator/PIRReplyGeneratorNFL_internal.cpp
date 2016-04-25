@@ -482,6 +482,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
 
 double PIRReplyGeneratorNFL_internal::generateReplySimulation(const PIRParameters& pir_params, uint64_t plaintext_nbr)
 {
+  
   setPirParams((PIRParameters&)pir_params);
   pushFakeQuery();
   
@@ -517,11 +518,10 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
   double start = omp_get_wtime();
   for (unsigned int i = 0 ; i < files_nbr ; i++)
   {
-    {
       poly64 *tmp;
-      tmp= cryptoMethod->deserializeDataNFL((unsigned char**)(input_data[i].p), (uint64_t) plaintext_nbr, cryptoMethod->getPublicParameters().getCiphertextBitsize()/2 , input_data[i].nbPolys);
+      tmp = cryptoMethod->deserializeDataNFL((unsigned char**)(input_data[i].p), (uint64_t) plaintext_nbr, cryptoMethod->getPublicParameters().getCiphertextBitsize()/2 , input_data[i].nbPolys);
 	    free(tmp[0]);	
-    }
+      tmp = NULL;
   }
   double result = omp_get_wtime() - start;
   std::cout << "PIRReplyGeneratorNFL_internal: Deserialize took " << result << " (omp)seconds" << std::endl;

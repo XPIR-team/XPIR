@@ -210,7 +210,6 @@ int main(int argc, char * argv[]) {
   // nb_files=db.getNbStream();database_size = db.getDBSizeinbits();
   // maxFileBytesize = database_size/nb_files;
 
-#if 0
   // Simple test
   std::cout << "======================================================================" << std::endl;
   std::cout << "Test 1/7: database_size = 1ULL<<30; nb_files = 20;" << std::endl;
@@ -239,7 +238,6 @@ int main(int argc, char * argv[]) {
   params.alpha = 100; params.d = 1; params.n[0] = 1; 
   params.crypto_params = "LWE:80:2048:120";
   tests_failed |= run(&db2, chosen_element, params);
-#endif
 
   // Test with recursion 2
   std::cout << "======================================================================" << std::endl;
@@ -253,7 +251,6 @@ int main(int argc, char * argv[]) {
   params.crypto_params = "LWE:80:2048:120";
   tests_failed |= run(&db3, chosen_element, params);
   
-#if 0
   // Test with recursion 2 and aggregation
   std::cout << "======================================================================" << std::endl;
   std::cout << "Test 4/7: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
@@ -310,7 +307,6 @@ int main(int argc, char * argv[]) {
     params.crypto_params = "LWE:80:2048:120";
     tests_failed |= run(&db7, chosen_element, params);
   }
-#endif
 
   if (tests_failed) 
   {
