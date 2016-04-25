@@ -449,7 +449,15 @@ void PIRReplyGeneratorNFL_internal::generateReply()
       cout << "PIRReplyGeneratorNFL_internal: reply_elt_nbr_OLD: " << old_reply_elt_nbr << endl;
     }
 #endif
-    // When i=> 2 clean old in_data.
+    if (i > 0)
+    { 
+      for (int j = 0 ; j < old_reply_elt_nbr ; j++)
+      {
+        free(in_data[j].p[0]);
+        free(in_data[j].p);
+      }
+      delete[] in_data;
+    }
     if (i < pirParam.d - 1) { 
       old_poly_nbr = currentMaxNbPolys;
       in_data = fromResulttoInData(inter_reply, reply_elt_nbr, i);
