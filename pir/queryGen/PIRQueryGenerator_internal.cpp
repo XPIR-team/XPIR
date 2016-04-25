@@ -50,6 +50,7 @@ void PIRQueryGenerator_internal::generateQuery()
   std::cout << "PIRQueryGenerator_internal: Generated a " << pirParams.n[j] << " element query" << std::endl;
   }
   double end = omp_get_wtime();
+  delete[] coord;
   
   std::cout << "PIRQueryGenerator_internal: All the queries have been generated, total time is " << end - start << " seconds" << std::endl;
 }
@@ -99,16 +100,15 @@ void PIRQueryGenerator_internal::joinThread()
 	if(queryThread.joinable()) queryThread.join();
 }
 
-PIRQueryGenerator_internal::~PIRQueryGenerator_internal() 
-{
-	joinThread();
-  cleanQueryBuffer();
-
-	delete[] coord;
-}
-
 void PIRQueryGenerator_internal::cleanQueryBuffer()
 {
 	while (!queryBuffer.empty())
 		free(queryBuffer.pop_front());
 }
+
+PIRQueryGenerator_internal::~PIRQueryGenerator_internal() 
+{
+	joinThread();
+  cleanQueryBuffer();
+}
+
