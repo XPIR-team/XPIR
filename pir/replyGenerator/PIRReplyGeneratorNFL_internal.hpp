@@ -50,9 +50,10 @@ private:
     void pushFakeQuery();
     void freeInputData();
     void freeFakeInputData();
-    void freeResult();
 protected:
-    void freeQuery();
+    void freeResult();
+    void freeQueries();
+    void freeQueriesBuffer();
     void generateReply();
     imported_database_t generateReplyGeneric(bool keep_imported_data = false);
     void generateReplyGenericFromData(const imported_database_t database);

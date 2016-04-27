@@ -23,7 +23,10 @@ GenericPIRReplyGenerator::GenericPIRReplyGenerator():
   repliesAmount(0),
   repliesIndex(0)
 {
-   mutex.lock();
+  pirParam.d = 0;
+  pirParam.alpha = 0;
+  for (int i = 0 ; i < MAX_REC_LVL; i++) pirParam.n[i] = 0;
+  mutex.lock();
 }
 
 GenericPIRReplyGenerator::GenericPIRReplyGenerator(PIRParameters& param, DBHandler *db):

@@ -27,7 +27,13 @@
 //#define SNIFFER //Use this to activate a sniffer like behavior
 
 PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
-  lwe(false)
+  lwe(false),
+  currentMaxNbPolys(0),
+  queriesBuf(NULL),
+  current_query_index(0),
+  current_dim_index(0),
+  input_data(NULL),
+  cryptoMethod(NULL)
 {
 }
 
@@ -39,10 +45,13 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
  **/
 PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& param, DBHandler* db):
   lwe(false),
-  currentMaxNbPolys(1),
+  currentMaxNbPolys(0),
   GenericPIRReplyGenerator(param,db),
+  queriesBuf(NULL),
   current_query_index(0),
-  current_dim_index(0)
+  current_dim_index(0),
+  input_data(NULL),
+  cryptoMethod(NULL)
 {
   // cryptoMethod will be set later by setCryptoMethod
 }
@@ -75,7 +84,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
 
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];
 
-	input_data = new lwe_in_data[theoretical_files_nbr];
+	input_data = (lwe_in_data *) malloc(sizeof(lwe_in_data)*theoretical_files_nbr);
 	char *rawBits = (char*)calloc(fileByteSize*pirParam.alpha, sizeof(char));
 
 	currentMaxNbPolys=0;
@@ -201,6 +210,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
   database_wrapper.imported_database_ptr = NULL;
   database_wrapper.nbElements = 0;
   database_wrapper.polysPerElement = 0;
+  database_wrapper.beforeImportElementBytesize = 0;
 
   // Don't use more than half of the computer's memory 
   usable_memory = getTotalSystemMemory()/2;
@@ -258,12 +268,15 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
     } 
 
     boost::mutex::scoped_lock l(mutex);
+    repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
     generateReply();
     end = omp_get_wtime();
 
     if(keep_imported_data && iteration == nbr_of_iterations - 1)  // && added for Perf test but is no harmful
     {
       database_wrapper.imported_database_ptr = (void*)input_data;
+      database_wrapper.beforeImportElementBytesize = dbhandler->getmaxFileBytesize();
+      database_wrapper.nbElements = dbhandler->getNbStream();
     } 
     else 
     {
@@ -274,7 +287,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*database_size/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 
   return database_wrapper;
 }
@@ -289,16 +302,17 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
   currentMaxNbPolys = database.polysPerElement;
 	boost::mutex::scoped_lock l(mutex);
   double start = omp_get_wtime();
+  repliesAmount = computeReplySizeInChunks(database.beforeImportElementBytesize);
   generateReply();
 #else
   uint64_t max_readable_size, database_size, nbr_of_iterations;
 
-  database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
-  max_readable_size = 1280000000UL/dbhandler->getNbStream();
+  database_size = database.beforeImportElementBytesize * database.nbElements;
+  max_readable_size = 1280000000UL/database.nbElements;
   // Ensure it is not larger than maxfilebytesize
-  max_readable_size = min(max_readable_size, dbhandler->getmaxFileBytesize());
+  max_readable_size = min(max_readable_size, database.beforeImportElementBytesize);
   // Given readable size we get how many iterations we need
-  nbr_of_iterations = ceil((double)dbhandler->getmaxFileBytesize()/max_readable_size);
+  nbr_of_iterations = ceil((double)database.beforeImportElementBytesize/max_readable_size);
 
 
   boost::mutex::scoped_lock l(mutex);
@@ -308,6 +322,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
 
     input_data = (lwe_in_data*) database.imported_database_ptr;
     currentMaxNbPolys = database.polysPerElement;
+    repliesAmount = computeReplySizeInChunks(database.beforeImportElementBytesize);
     generateReply();
   }
   freeInputData();
@@ -316,7 +331,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 }
 
 
@@ -327,12 +342,12 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 {
   uint64_t max_readable_size, database_size, nbr_of_iterations;
 
-  database_size = dbhandler->getmaxFileBytesize() * dbhandler->getNbStream();
-  max_readable_size = 1280000000UL/dbhandler->getNbStream();
+  database_size = database->beforeImportElementBytesize * database->nbElements;
+  max_readable_size = 1280000000UL/database->nbElements;
   // Ensure it is not larger than maxfilebytesize
-  max_readable_size = min(max_readable_size, dbhandler->getmaxFileBytesize());
+  max_readable_size = min(max_readable_size, database->beforeImportElementBytesize);
   // Given readable size we get how many iterations we need
-  nbr_of_iterations = ceil((double)dbhandler->getmaxFileBytesize()/max_readable_size);
+  nbr_of_iterations = ceil((double)database->beforeImportElementBytesize/max_readable_size);
 
 
   boost::mutex::scoped_lock l(mutex);
@@ -342,6 +357,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 
     input_data = (lwe_in_data*) database->imported_database_ptr;
     currentMaxNbPolys = database->polysPerElement;
+    repliesAmount = computeReplySizeInChunks(database->beforeImportElementBytesize);
     generateReply();
   }
   freeInputData();
@@ -349,7 +365,7 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
 	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
 	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQuery();
+  freeQueries();
 }
 
 
@@ -370,7 +386,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
   uint64_t old_poly_nbr = 1;
   
   // Allocate memory for the reply array
-  repliesAmount = computeReplySizeInChunks(dbhandler->getmaxFileBytesize());
+  if (repliesArray != NULL) freeResult();
   repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
 
 
@@ -427,29 +443,36 @@ void PIRReplyGeneratorNFL_internal::generateReply()
     /*****************/
     /*MEMORY CLEANING*/
     /*****************/
+#ifdef DEBUG
     if ( i > 0)
     {
-#ifdef DEBUG
       cout << "PIRReplyGeneratorNFL_internal: reply_elt_nbr_OLD: " << old_reply_elt_nbr << endl;
-#endif
-     // for (unsigned int j = 0 ; j < old_reply_elt_nbr ; j++) {
-     //   free(in_data[j].p[0]);
-     //   free(in_data[j].p);
-     // }
-     // delete[] in_data;
     }
-  // When i i=> 2 clean old in_data.
+#endif
+    if (i > 0)
+    { 
+      for (int j = 0 ; j < old_reply_elt_nbr ; j++)
+      {
+        free(in_data[j].p[0]);
+        free(in_data[j].p);
+      }
+      delete[] in_data;
+    }
     if (i < pirParam.d - 1) { 
       old_poly_nbr = currentMaxNbPolys;
       in_data = fromResulttoInData(inter_reply, reply_elt_nbr, i);
     }
 
     for (uint64_t j = 0 ; j < reply_elt_nbr ; j++) {
-      for (uint64_t k = 0 ; (k < old_poly_nbr) && (i < pirParam.d - 1); k++) free(inter_reply[j][k].a);
-
+      for (uint64_t k = 0 ; (k < old_poly_nbr) && (i < pirParam.d - 1); k++){
+        free(inter_reply[j][k].a);
+        inter_reply[j][k].a = NULL;
+      }
       delete[] inter_reply[j];
+      inter_reply[j] = NULL;
     }
     delete[] inter_reply; // allocated with a 'new' above. 
+    inter_reply = NULL;
   }
 
   // Compute execution time
@@ -459,22 +482,21 @@ void PIRReplyGeneratorNFL_internal::generateReply()
 
 double PIRReplyGeneratorNFL_internal::generateReplySimulation(const PIRParameters& pir_params, uint64_t plaintext_nbr)
 {
+  
   setPirParams((PIRParameters&)pir_params);
-  initQueriesBuffer();
   pushFakeQuery();
   
   importFakeData(plaintext_nbr);
 
 
-  uint64_t repliesAmount = computeReplySizeInChunks(cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
-  repliesArray = (char**)calloc(repliesAmount,sizeof(char*)); 
+  repliesAmount = computeReplySizeInChunks(plaintext_nbr*cryptoMethod->getPublicParameters().getCiphertextBitsize() / CHAR_BIT);
 	repliesIndex = 0;
 
   double start = omp_get_wtime();
   generateReply();
   double result = omp_get_wtime() - start;
 
-  freeQuery();
+  freeQueries();
   freeInputData();
   freeResult();
   delete dbhandler;
@@ -487,7 +509,6 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
 {
   NFLlib *nflptr = &(cryptoMethod->getnflInstance());
   setPirParams((PIRParameters&)pir_params);
-  initQueriesBuffer();
   pushFakeQuery();
   importFakeData(plaintext_nbr);
 
@@ -497,15 +518,14 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
   double start = omp_get_wtime();
   for (unsigned int i = 0 ; i < files_nbr ; i++)
   {
-    {
       poly64 *tmp;
-      tmp= cryptoMethod->deserializeDataNFL((unsigned char**)(input_data[i].p), (uint64_t) plaintext_nbr, cryptoMethod->getPublicParameters().getCiphertextBitsize()/2 , input_data[i].nbPolys);
+      tmp = cryptoMethod->deserializeDataNFL((unsigned char**)(input_data[i].p), (uint64_t) plaintext_nbr, cryptoMethod->getPublicParameters().getCiphertextBitsize()/2 , input_data[i].nbPolys);
 	    free(tmp[0]);	
-    }
+      tmp = NULL;
   }
   double result = omp_get_wtime() - start;
   std::cout << "PIRReplyGeneratorNFL_internal: Deserialize took " << result << " (omp)seconds" << std::endl;
-  freeQuery();
+  freeQueries();
   freeInputData();
   freeResult();
   delete dbhandler;
@@ -633,9 +653,7 @@ lwe_in_data* PIRReplyGeneratorNFL_internal::fromResulttoInData(lwe_cipher** inte
 														currentMaxNbPolys, 
 														cryptoMethod->getPublicParameters().getCiphertextBitsize(), 
 														in_data2b[i].nbPolys);
-      //delete[] inter_reply[i]; free in generateReplyGeneric
     }
-    //delete[] inter_reply;
     free(bufferOfBuffers);
 
     currentMaxNbPolys = in_data2b_nbr_polys; 
@@ -725,15 +743,14 @@ void PIRReplyGeneratorNFL_internal::initQueriesBuffer() {
 
 void PIRReplyGeneratorNFL_internal::pushFakeQuery()
 {
-  char* query_element = cryptoMethod->encrypt(0, 1); 
+  char* query_element;
 
   for (unsigned int dim  = 0 ; dim < pirParam.d ; dim++) {
     for(unsigned int j = 0 ; j < pirParam.n[dim] ; j++) {
+      query_element = cryptoMethod->encrypt(0, 1); 
       pushQuery(query_element, cryptoMethod->getPublicParameters().getCiphertextBitsize()/8, dim, j); 
     }
   }
-
-  free(query_element);
 }
 
 
@@ -759,8 +776,11 @@ void PIRReplyGeneratorNFL_internal::pushQuery(char* rawQuery, unsigned int size,
   unsigned int nbModuli = cryptoMethod->getnbModuli();
   // Trick, we get both a and b at the same time, b needs to be set afterwards
   uint64_t *a,*b;
-  a = (poly64) calloc(size, 1);
-  memcpy(a,rawQuery,size);
+  
+  // We push the query we do not copy it 
+  //a = (poly64) calloc(size, 1);
+  //memcpy(a,rawQuery,size);
+  a = (poly64) rawQuery;
   if (lwe) b = a+nbModuli*polyDegree;
 #ifdef CRYPTO_DEBUG
 	std::cout<<"\nQuery received.a ";NFLTools::print_poly64(a,4);	
@@ -816,16 +836,13 @@ size_t PIRReplyGeneratorNFL_internal::getTotalSystemMemory()
 #endif
 }
 
-PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
-{
-  freeResult();
-}
-
-
 void PIRReplyGeneratorNFL_internal::setPirParams(PIRParameters& param)
 {
+  freeQueries();
+  freeQueriesBuffer();
   pirParam = param;
   cryptoMethod->setandgetAbsBitPerCiphertext(pirParam.n[0]);
+  initQueriesBuffer();
 }
 
 
@@ -838,45 +855,77 @@ void PIRReplyGeneratorNFL_internal::setCryptoMethod(CryptographicSystem* cm)
 
 void PIRReplyGeneratorNFL_internal::freeInputData()
 {
+#ifdef DEBUG
+  std:cout << "PIRReplyGeneratorNFL_internal: freeing input_data" << std::endl;
+#endif
   uint64_t theoretical_files_nbr = 1;
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];
 
-  for (unsigned int i = 0 ; i < theoretical_files_nbr ; i++){
-#ifdef DEBUG
-  printf( "PIRReplyGeneratorNFL_internal: freeing input_data[%d]\n",i);
-#endif
-    free(input_data[i].p[0]);
-    free(input_data[i].p);
+  if (input_data != NULL){
+    for (unsigned int i = 0 ; i < theoretical_files_nbr ; i++){
+      if (input_data[i].p != NULL){
+        if (input_data[i].p[0] != NULL){
+          free(input_data[i].p[0]);
+          input_data[i].p[0] = NULL;
+        }
+        free(input_data[i].p);
+        input_data[i].p = NULL;
+      }
+    }
+    delete[] input_data;
+    input_data = NULL;
   }
-  delete[] input_data;
-
 #ifdef DEBUG
   printf( "PIRReplyGeneratorNFL_internal: input_data freed\n");
 #endif
 }
 
-void PIRReplyGeneratorNFL_internal::freeQuery()
+void PIRReplyGeneratorNFL_internal::freeQueries()
 {
   for (unsigned int i = 0; i < pirParam.d; i++)
   {
-#ifdef SHOUP
-      for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) {
-		  free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
-		  free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
+    for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) 
+    {
+		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][0][j].a != NULL)
+      {
+        free(queriesBuf[i][0][j].a); //only free a because a and b and contingus, see pushQuery
+        queriesBuf[i][0][j].a = NULL;
+      }
+		  if (queriesBuf != NULL && queriesBuf[i] != NULL && queriesBuf[i][1][j].a != NULL)
+      {
+        free(queriesBuf[i][1][j].a); //only free a because a and b and contingus, see pushQuery
+        queriesBuf[i][1][j].a = NULL;
+      }
 	  }
-      delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
-      delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
-      delete[] queriesBuf[i];
-#else
-	  for (unsigned int j = 0 ; j < pirParam.n[i] ; j++) free(queriesBuf[i][j].a); //only free a because a and b and contingus, see pushQuery
-      delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
-#endif
   }
-  delete[] queriesBuf;//allocated in intQueriesBuf with new.
+  current_query_index = 0;
+  current_dim_index = 0;
 #ifdef DEBUG
   printf( "queriesBuf freed\n");
 #endif
   
+}
+
+void PIRReplyGeneratorNFL_internal::freeQueriesBuffer()
+{
+  if (queriesBuf != NULL){ 
+    for (unsigned int i = 0; i < pirParam.d; i++){
+      if (queriesBuf[i] != NULL){
+        if (queriesBuf[i][0] != NULL){
+          delete[] queriesBuf[i][0]; //allocated in intQueriesBuf with new.
+          queriesBuf[i][0] = NULL;
+        }
+        if (queriesBuf[i][1] != NULL){
+          delete[] queriesBuf[i][1]; //allocated in intQueriesBuf with new.
+          queriesBuf[i][1] = NULL;
+        }
+        delete[] queriesBuf[i]; //allocated in intQueriesBuf with new.
+        queriesBuf[i] = NULL;
+      }
+    }
+    delete[] queriesBuf; //allocated in intQueriesBuf with new.
+    queriesBuf = NULL;
+  }
 }
 
 void PIRReplyGeneratorNFL_internal::freeResult()
@@ -892,3 +941,15 @@ void PIRReplyGeneratorNFL_internal::freeResult()
     repliesArray=NULL;
   }
 }
+
+
+PIRReplyGeneratorNFL_internal::~PIRReplyGeneratorNFL_internal()
+{
+  freeQueries();
+  freeQueriesBuffer();
+  freeResult();
+  mutex.try_lock();
+  mutex.unlock();
+}
+
+
