@@ -32,8 +32,10 @@ set(BOOST_ROOT "./local")
 #   if you use brew, you need to modify your formula in order to compile with gcc
 #      by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/
 
-
+# Some users also reported that linking against static boost libraries solves the problem.
 SET( Boost_USE_STATIC_LIBS FALSE )
+#SET( Boost_USE_STATIC_LIBS TRUE )
+
 find_package(Boost 1.55.0  REQUIRED
   COMPONENTS atomic chrono date_time exception program_options regex system thread program_options)
 include_directories(${Boost_INCLUDE_DIR})
