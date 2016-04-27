@@ -12,15 +12,37 @@ set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-fopenmp")
+set(CMAKE_LIBRARY_PATH "./local")
+
+# Boost 
+#  you can give hints to find_package in order to find your favorite boost build
+#  if you use the boost coming with XPIR helper_script.sh, set BOOST_ROOT to ./local as in the following line 
 set(BOOST_ROOT "./local")
+#  otherwise set it to your own boost build, by uncomenting the following one for example
+#  but the order in which cmake.find_package searches potential directories is obscure and 
+#  we recommend you double-check the output of cmake to see if it picked the proper build
+# set(BOOST_ROOT "/usr/local/Cellar/boost/1.60.0_2/")
+
+# OSX users : there is an issue between clang-compiled libraries and gcc-compiled binaries (and vice-versa)
+#   since XPIR is compiled with gcc, it must be linked with gcc-compiled boost libraries
+#   or you'll get link-errors.
+#   if you use XPIR helper-script to install the dependencies, nothin to worry about, they'll be gcc'ed
+#   if you use macport, you can enforce compilation with gcc by using commands like
+#      $port upgrade --force boost configure.compiler=macports-gcc-4.9 (or gcc-4.9 for example)
+#   if you use brew, you need to modify your formula in order to compile with gcc
+#      by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/
+
 
 SET( Boost_USE_STATIC_LIBS FALSE )
 find_package(Boost 1.55.0  REQUIRED
   COMPONENTS atomic chrono date_time exception program_options regex system thread program_options)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
-	
+ message(STATUS "Boost_lib=" ${Boost_LIBRARY_DIR})
+ message(STATUS "Boost_inc=" ${Boost_INCLUDE_DIR})
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+
 find_package(GMP 6 REQUIRED)
 find_package(MPFR 3.1.2 REQUIRED)
 
