@@ -207,7 +207,7 @@ if [[ TEST_PAILLIER -eq 1 ]]; then
     done
 fi
 
-echo -e "\n\nOther tests\n#################\n"
+echo -e "\n\nTests\n#################\n"
 for DB in $ONE_MBIT $TEN_MBIT $HUNDRED_MBIT $ONE_GBIT 
 do
     for L in $ONE_KBIT $HUNDRED_KBIT $TEN_MBIT $ONE_GBIT  

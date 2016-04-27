@@ -59,6 +59,7 @@ void  NFLlib::configureNTT()
   shoupinvomegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));  
   invpolyDegree = (uint64_t *) malloc(nbModuli * sizeof(uint64_t));
   liftingIntegers = new mpz_t[nbModuli];
+  moduli=new uint64_t[nbModuli]();
 
   // From now on, we have to do everything nbModuli times
   for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) 
@@ -223,8 +224,6 @@ void NFLlib::setmodulus(uint64_t aggregatedModulusBitsize_)
   }
   nbModuli=aggregatedModulusBitsize_/kModulusBitsize;
   
-  moduli=new uint64_t[nbModuli]();
-
   configureNTT();
 }
 
@@ -528,7 +527,7 @@ mpz_t* NFLlib::poly2mpz(poly64 p)
   for(int cm = 0; cm < nbModuli;cm++) {
   	mpz_clear(tmpzbuffer[cm]);
   	}
-  free(tmpzbuffer);
+  delete[] tmpzbuffer;
   return resultmpz;
 }
 
@@ -584,6 +583,7 @@ void NFLlib::freeNTTMemory(){
   
     if (i == alreadyInit - 1)
     {
+      free(phis);
       free(shoupphis);
       free(invpoly_times_invphis);
       free(shoupinvpoly_times_invphis);
@@ -595,6 +595,7 @@ void NFLlib::freeNTTMemory(){
       delete[] liftingIntegers;
       free(inv_indexes);
       mpz_clear(moduliProduct);
+      delete[] moduli;
     }
   }
 

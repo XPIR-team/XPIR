@@ -45,16 +45,16 @@ class GenericPIRReplyGenerator
   protected:
 
 
-    PIRParameters emptyPIRParams;
+  PIRParameters emptyPIRParams;
 	PIRParameters& pirParam;
 	unsigned int maxChunkSize;
 	DBHandler* dbhandler;	
 
   public:
 	boost::mutex mutex;
-  char** repliesArray;
-  unsigned repliesAmount;
-  unsigned repliesIndex;
+  char** repliesArray = NULL;
+  unsigned repliesAmount = 0;
+  unsigned repliesIndex = 0;
 
     GenericPIRReplyGenerator();
     GenericPIRReplyGenerator(PIRParameters& param, DBHandler* db);

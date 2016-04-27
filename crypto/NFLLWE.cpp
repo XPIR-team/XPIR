@@ -383,7 +383,7 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
 
 	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
 
-		// We firs% moduli[cm] t get the amplified noise plus message (e*A+m =b-a*S)
+		// We first get the amplified noise plus message (e*A+m =b-a*S)
 		for (unsigned int i=0 ; i < polyDegree; i++) 
     {
 			uint64_t temp=0;
@@ -449,7 +449,9 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
 	    mpz_clear(tmprez[i]);
 	  }
     
-    free(tmprez);
+    delete[] tmprez;
+    mpz_clears(moduliProduct, tmpz, magicConstz, bitmaskz, NULL);
+
   } else { // nbModuli=1
 	
 	

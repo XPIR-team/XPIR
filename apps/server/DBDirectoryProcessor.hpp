@@ -40,6 +40,7 @@ private:
   std::vector<std::ifstream*> fdPool; // a pool of file descriptors
   std::vector <std::string> file_list; // the output file list
   bool filesSplitting;
+  bool error = false;
   std::string realFileName; // The name of the unique file in case of splitting
   
 public:
@@ -52,6 +53,7 @@ public:
   uint64_t getDBSizeBits();
   uint64_t getNbStream();
   uint64_t getmaxFileBytesize();
+  bool getErrorStatus();
   
   std::ifstream* openStream(uint64_t streamNb, uint64_t requested_offset);
   uint64_t readStream(std::ifstream* s,char * buf, uint64_t size);
