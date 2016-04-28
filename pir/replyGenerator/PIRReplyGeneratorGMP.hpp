@@ -26,7 +26,6 @@
 
 #include "pir/PIRParameters.hpp"
 #include "pir/replyGenerator/GenericPIRReplyGenerator.hpp"
-#include "apps/server/DBHandler.hpp"
 #include "crypto/PaillierAdapter.hpp"
 
 using namespace std;

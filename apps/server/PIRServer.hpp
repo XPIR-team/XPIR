@@ -22,9 +22,9 @@
 
 #include "PIRSession.hpp"
 #include "ServerService.hpp"
-#include "../server/DBHandler.hpp"
-#include "../server/DBDirectoryProcessor.hpp"
-#include "../server/DBGenerator.hpp"
+#include "pir/dbhandlers/DBHandler.hpp"
+#include "pir/dbhandlers/DBDirectoryProcessor.hpp"
+#include "pir/dbhandlers/DBGenerator.hpp"
 
 #define DEFAULT_PORT 1234
 

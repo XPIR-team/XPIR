@@ -9,7 +9,7 @@ add_custom_target(build-time-make-directory-simple-pir ALL COMMAND ${CMAKE_COMMA
 file(COPY "../tools/makedb.sh" DESTINATION ".")
 
 
-add_executable(simple_pir simplePIR.cpp ../../libpir.hpp ../server/DBGenerator.cpp ../server/DBDirectoryProcessor.cpp)
+add_executable(simple_pir simplePIR.cpp ../../libpir.hpp)
 target_link_libraries(simple_pir pir pthread ${MPFR_LIBRARIES} ${Boost_LIBRARIES} ${GMP_LIBRARIES} ${GMPXX_LIBRARIES})
 
 

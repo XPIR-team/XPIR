@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "pir/PIRParameters.hpp"
-#include "apps/server/DBHandler.hpp"
 #include "pir/replyGenerator/PIRReplyGeneratorGMP.hpp"
 #include "pir/replyGenerator/PIRReplyGeneratorNFL_internal.hpp"
 #include "pir/replyGenerator/PIRReplyGeneratorTrivial.hpp"

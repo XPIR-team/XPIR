@@ -25,7 +25,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include "apps/server/DBHandler.hpp"
+#include "pir/dbhandlers/DBHandler.hpp"
 #include "pir/PIRParameters.hpp"
 #include "pir/replyGenerator/PIRReplyGeneratorFactory.hpp"
 #include "crypto/HomomorphicCryptoFactory_internal.hpp"

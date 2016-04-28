@@ -9,6 +9,8 @@
 #include <crypto/NFLLWE.hpp>
 #include <crypto/HomomorphicCryptoFactory_internal.hpp>
 #include <crypto/HomomorphicCrypto.hpp>
+#include "pir/dbhandlers/DBGenerator.hpp"
+#include "pir/dbhandlers/DBDirectoryProcessor.hpp"
 #include <stdint.h>
 
 
