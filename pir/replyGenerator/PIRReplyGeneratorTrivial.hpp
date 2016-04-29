@@ -21,7 +21,6 @@
 #include "pir/replyGenerator/GenericPIRReplyGenerator.hpp"
 #include "crypto/HomomorphicCrypto.hpp"
 #include "crypto/NoCryptography.hpp"
-#include "apps/server/DBHandler.hpp"
 
 class PIRReplyGeneratorTrivial : public GenericPIRReplyGenerator
 {

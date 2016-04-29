@@ -5,7 +5,7 @@ include_directories(.)
 include_directories(..)
 include_directories(../..)
 
-add_executable(pir_server DBDirectoryProcessor.cpp DBGenerator.cpp PIRServer.cpp PIRSession.cpp ServerService.cpp main.cpp)
+add_executable(pir_server PIRServer.cpp PIRSession.cpp ServerService.cpp main.cpp)
 
 target_link_libraries(pir_server pir ${Boost_LIBRARIES} ${GMP_LIBRARIES} pthread )
 

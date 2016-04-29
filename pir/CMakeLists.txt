@@ -11,6 +11,7 @@ include_directories("/opt/local/include" ${CMAKE_SOURCE_DIR}/crypto ${CMAKE_SOUR
 
 add_subdirectory("events")
 add_subdirectory("optim")
+add_subdirectory("dbhandlers")
 add_subdirectory("queryGen")
 add_subdirectory("replyExtraction")
 add_subdirectory("replyGenerator")
@@ -24,6 +25,7 @@ file(GLOB PIRLIB_SRCS
 	${CMAKE_SOURCE_DIR}/apps/server/DB*.cpp 
 	${CMAKE_SOURCE_DIR}/pir/events/*.cpp 
 	${CMAKE_SOURCE_DIR}/pir/optim/*.cpp 
+	${CMAKE_SOURCE_DIR}/pir/dbhandlers/*.cpp 
 	${CMAKE_SOURCE_DIR}/pir/queryGen/*.cpp 
 	${CMAKE_SOURCE_DIR}/pir/replyExtraction/*.cpp 
 	${CMAKE_SOURCE_DIR}/pir/replyGenerator/*.cpp )

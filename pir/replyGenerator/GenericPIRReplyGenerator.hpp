@@ -26,7 +26,7 @@
 #include <boost/thread/recursive_mutex.hpp>
 
 #include "pir/PIRParameters.hpp"
-#include "apps/server/DBHandler.hpp"
+#include "pir/dbhandlers/DBHandler.hpp"
 #include "crypto/CryptographicSystem.hpp"
 #include "pir/shared_queue.hpp"
 #include "pir/GlobalConstant.hpp"

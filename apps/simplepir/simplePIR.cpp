@@ -1,5 +1,4 @@
 #include "libpir.hpp"
-#include "apps/server/DBDirectoryProcessor.hpp"
 
 bool run(DBHandler *db, uint64_t chosen_element, PIRParameters params){
 
