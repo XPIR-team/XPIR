@@ -54,7 +54,7 @@ sudo port select clang mp-clang-3.6
 
 You need cmake, GMP (version 6) Mpfr (version 3.1.2), and some boost modules (atomic, chrono, date_time, exception, program_options, regex, system, thread, all in version 1.55.0) to build XPIR. You can install them by yourself on your system (if you know how to do it this will be the fastest option). You can also use the (slower but safer) script helper_script.sh that is in the root directory of the repository to retrieve the exact versions and compile them in a local directory (namely ./local/). If two versions of the required libraries exist (one local and one system-wide) the local will be taken preferently.
 
-*On OSX only*, using the helper_script is recommended as installing BOOST manually requires to circumvect some problems. Indeed, there is an issue between clang-compiled libraries and gcc-compiled binaries (and vice-versa) - see http://stackoverflow.com/questions/19912862/compiling-boostprogram-options-on-mac-os-x-with-g-4-8-mac-ports for more details. Since XPIR is compiled with gcc, it must be linked with gcc-compiled boost libraries or you'll get link-errors. The boost build you use can be set in CMakeList.txt. If you use XPIR helper-script to install the dependencies, nothin to worry about, they'll be gcc'ed (default behaviour). If you use macport, you can enforce compilation with gcc by using commands like ```port upgrade --force boost configure.compiler=macports-gcc-4.8``` (or gcc-4.8, or gcc-6.5.9-alpha for example) - you need to modify CMakeList.txt:20-24 accordingly to your boost install path. If you use brew, you need to modify your formula in order to compile with gcc by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/ and also modify CMakeList.txt:20-24 to reflect the boost installation path. Some users also reported that linking against static boost libraries solves the problem, this can be changed by modifying CMakeList.txt:36.
+*On OSX only*, using the helper_script is recommended as installing BOOST manually requires to circumvect some problems. Alternatives are discussed [here](#Boost-Installation-Alternatives-for-OSX).
 
 To build, and test XPIR, run the following:
 
@@ -212,6 +212,16 @@ Set fitness method to:
 2=CLOUD Dollars in a cloud model (see source code)
 This sets the target function of the optimizer. When studying the different parameters the optimizer will choose the one that minimizes this function. 0 corresponds to minimizing the resources spent, 1 to minimizing the round-trip time (given that server operations have are pipelined and client operations are also, independently, pipelined), 2 corresponds to minimizing the cost by associating CPU cycles and bits transmitted to money using a cloud computing model.
 
+Boost Installation Alternatives for OSX:
+========================================
+
+The RECOMMENDED way to install boost for XPIR is the helper script. It is possible to install it with port or brew but some problems need to be circumvected and this is not supported. Indeed, there is an issue between clang-compiled libraries and gcc-compiled binaries (and vice-versa) - see http://stackoverflow.com/questions/19912862/compiling-boostprogram-options-on-mac-os-x-with-g-4-8-mac-ports for more details. Since XPIR is compiled with gcc, it must be linked with gcc-compiled boost libraries or you'll get link-errors.
+
+If you use macport, you can enforce compilation with gcc by using commands like ```port upgrade --force boost configure.compiler=macports-gcc-4.8``` (or gcc-4.8, or gcc-6.5.9-alpha for example) - and modifying the main CMakeLists.txt with a `set(BOOST_ROOT "your_boost_directory")`.
+
+If you use brew, you need to modify your formula in order to compile with gcc by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/ and also modifying CMakeLists.txt to reflect the boost installation path. 
+
+Again, these alternatives are error prone and NOT supported. If the user wants to try anyway see the discussion in this [issue](https://github.com/XPIR-team/XPIR/issues/21).
 
 Contributors:
 =============
