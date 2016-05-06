@@ -23,18 +23,7 @@ set(BOOST_ROOT "./local")
 #  we recommend you double-check the output of cmake to see if it picked the proper build
 # set(BOOST_ROOT "/usr/local/Cellar/boost/1.60.0_2/")
 
-# OSX users : there is an issue between clang-compiled libraries and gcc-compiled binaries (and vice-versa)
-#   since XPIR is compiled with gcc, it must be linked with gcc-compiled boost libraries
-#   or you'll get link-errors.
-#   if you use XPIR helper-script to install the dependencies, nothin to worry about, they'll be gcc'ed
-#   if you use macport, you can enforce compilation with gcc by using commands like
-#      $port upgrade --force boost configure.compiler=macports-gcc-4.9 (or gcc-4.9 for example)
-#   if you use brew, you need to modify your formula in order to compile with gcc
-#      by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/
-
-# Some users also reported that linking against static boost libraries solves the problem.
 SET( Boost_USE_STATIC_LIBS FALSE )
-#SET( Boost_USE_STATIC_LIBS TRUE )
 
 find_package(Boost 1.55.0  REQUIRED
   COMPONENTS atomic chrono date_time exception program_options regex system thread program_options)
