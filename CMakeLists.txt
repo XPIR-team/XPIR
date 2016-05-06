@@ -14,6 +14,7 @@ set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-fopenmp")
 set(CMAKE_LIBRARY_PATH "./local")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath,'./local'")
 
 # Boost 
 #  you can give hints to find_package in order to find your favorite boost build
