@@ -94,8 +94,7 @@ A simple demonstration of how to use this API to build PIR protocols is availabl
 In order to compile a PIR protocol using the API, such as simplepir, one just need the library (either static or dynamic) and the includes. And compiling can be done with something like :
 `g++ -std=c++11 simplePIR.cpp -I$include_dir -L$lib_dir -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system`
 Note that include_dir and lib_dir must point to the place where helper_script installed the libraries (typically ./local/include and ./local/lib).
-Also note that your LD_LIBRARY_PATH and DYLD_LIBRARY_PATH need to point to the lib_dir :
-```export LD_LIBRARY_PATH=$PATH_TO_XPIR/local/lib:$LD_LIBRARY_PATH```
+Also note that your DYLD_LIBRARY_PATH need to point to the lib_dir :
 ```export DYLD_LIBRARY_PATH=$PATH_TO_XPIR/local/lib:$DYLD_LIBRARY_PATH```
 
 Usage of the client/server apps:

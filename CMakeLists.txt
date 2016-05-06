@@ -6,10 +6,11 @@ enable_language(CXX ASM)
 
 if(APPLE)
     cmake_policy(SET CMP0042 NEW)
+    set(CMAKE_INSTALL_NAME_DIR @executable_path)
 endif()
 
-#set(CMAKE_C_COMPILER "gcc")
-#set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -ggdb -Wno-deprecated-declarations")
 set(CMAKE_EXE_LINKER_FLAGS "-fopenmp")
 set(CMAKE_LIBRARY_PATH "./local")
