@@ -78,7 +78,7 @@ The following CMake options are relevant:
 
 Option                             | Description
 -----------------------------------|---------------------------------
-`-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if |catalog|<1000)
+`-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if \|catalog\|<1000)
 `-DMULTI_THREAD=OFF`               | Do not use multi-threading
 `-DPERF_TIMERS=OFF`                | Do not show performance measurements during execution
 `-DCMAKE_BUILD_TYPE=Debug`         | Add debugging options and remove optimization
@@ -91,10 +91,12 @@ Besides a client and a server that can be used as standalone applications to do 
 
 A simple demonstration of how to use this API to build PIR protocols is available on the source tree at apps/simplepir/simple_pir.cpp. It can be run from apps/simplepir in the build tree.
 
-In order to compile a PIR protocol using the API, such as simplepir, one just need the library (either static or dynamic) and the includes. And compiling can be done with something like :
-`g++ -std=c++11 simplePIR.cpp -I$include_dir -L$lib_dir -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system`
-Note that include_dir and lib_dir must point to the place where helper_script installed the libraries (typically ./local/include and ./local/lib).
-Also note that your DYLD_LIBRARY_PATH need to point to the lib_dir :
+In order to compile a PIR protocol using the API, such as simplepir, one just needs the library (either static or dynamic). Compiling can be done with something like :
+`g++ -std=c++11 simplePIR.cpp -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system`.
+
+If you used the helper script to install the dependencies, you may need to add some lib and include dirs `g++ -std=c++11 simplePIR.cpp -I$include_dir -L$lib_dir -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system` include_dir and lib_dir pointing to the place where helper_script installed the libraries (typically ./local/include and ./local/lib).
+
+*On OSX only*, if you used the helper script (recommended install), your DYLD_LIBRARY_PATH needs to point to the lib_dir :
 ```export DYLD_LIBRARY_PATH=$PATH_TO_XPIR/local/lib:$DYLD_LIBRARY_PATH```
 
 Usage of the client/server apps:
