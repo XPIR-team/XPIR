@@ -27,11 +27,12 @@
  *		- signal1<void, WriteEvent> 	: writeEvent listeners reference shared with PIRClient ;
  *		- ignal1<void, MessageEvent&> : messageEvent listeners reference shared with PIRClient.
  **/
-PIRReplyExtraction_internal::PIRReplyExtraction_internal(PIRParameters& param_, HomomorphicCrypto& cryptoMethod_) :
+PIRReplyExtraction_internal::PIRReplyExtraction_internal(PIRParameters& param_, HomomorphicCrypto& cryptoMethod_, bool _verbose) :
   filePath("reception"),
   pirParams(param_),
   cryptoMethod(cryptoMethod_),
   repliesBuffer("coucou"),
+  verbose(_verbose),
   fileSize(0)
 {}
 
@@ -72,14 +73,14 @@ void PIRReplyExtraction_internal::extractReply(int aggregated_maxFileSize, share
 #ifdef DEBUG
     cout << "PIRReplyExtraction_internal: rec_lvl=" << rec_lvl << " ciphertext_nbr=" << ciphertext_nbr <<  " data_size=" << data_size << " data_size2b=" << data_size2b << endl;
 #endif
-    cout << "PIRReplyExtraction_internal: Waiting for first replies..." << endl;
+    if (verbose) cout << "PIRReplyExtraction_internal: Waiting for first replies..." << endl;
 
     for (unsigned int j = 0 ; j < ciphertext_nbr ; j++)
     {
       data = (rec_lvl == pirParams.d) ? repliesBuffer.pop_front() : in_data+(j*data_size); 
       if (rec_lvl == pirParams.d && j == 0 ) 
       { 
-        cout << "PIRReplyExtraction_internal: Starting reply extraction..." << endl;
+       if (verbose) cout << "PIRReplyExtraction_internal: Starting reply extraction..." << endl;
       }
       out_data = cryptoMethod.decrypt(data, rec_lvl, data_size, data_size2b);
      if (rec_lvl > 1) {
@@ -101,8 +102,9 @@ void PIRReplyExtraction_internal::extractReply(int aggregated_maxFileSize, share
     if (rec_lvl < pirParams.d) free(in_data);
     in_data = in_data_2b;
   }
-  cout << "PIRReplyExtraction_internal: Reply extraction finished, " << total_ciphertext_nbr <<
-    " reply elements decrypted in " << omp_get_wtime() - start << " seconds" << endl;
+  if (verbose) cout << "PIRReplyExtraction_internal: Reply extraction finished, "
+    << total_ciphertext_nbr << " reply elements decrypted in " << omp_get_wtime() - start 
+      << " seconds" << endl;
 }
 
 

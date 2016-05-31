@@ -169,7 +169,7 @@
 *	PIRReplyExtraction is Client side, it extracts the chosen element from the reply of the Server
 **/
   PIRReplyExtraction::PIRReplyExtraction(PIRParameters& pirParameters, HomomorphicCrypto& cryptoMethod_):
-    PIRReplyExtraction_internal(pirParameters,cryptoMethod_), clearChunks("clearChunks"){
+    PIRReplyExtraction_internal(pirParameters,cryptoMethod_, false), clearChunks("clearChunks"){
     nbPlaintextReplies=0;
   }
 	

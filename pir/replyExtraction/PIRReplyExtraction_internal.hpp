@@ -43,6 +43,7 @@ class PIRReplyExtraction_internal
 		string 				 filename, filePath;
 		
 		int   fileSize,keySize;
+    bool verbose;
 		
 		void writeFile();
 	
@@ -50,7 +51,8 @@ class PIRReplyExtraction_internal
 		boost::thread  replyThread;
 		shared_queue<char*> repliesBuffer;
 		
-    	PIRReplyExtraction_internal(PIRParameters& pirParameters, HomomorphicCrypto& cryptoMethod_); 
+    	PIRReplyExtraction_internal(PIRParameters& pirParameters, HomomorphicCrypto& cryptoMethod_, 
+          bool _verbose = true); 
 		~PIRReplyExtraction_internal();
 	
 		void startExtractReply(int aggregated_maxFileSize, shared_queue<char*>* clearChunks);
