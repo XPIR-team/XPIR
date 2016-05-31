@@ -36,6 +36,7 @@ class PIRQueryGenerator_internal
 		unsigned int* coord;
 		uint64_t chosenElement;
 		void computeCoordinates(void);
+    bool verbose;
 		
 	protected:
 		PIRParameters& pirParams;
@@ -46,7 +47,8 @@ class PIRQueryGenerator_internal
 		thread queryThread;
 		shared_queue <char*> queryBuffer;
 	
-		PIRQueryGenerator_internal(PIRParameters& pirParameters, HomomorphicCrypto& cryptoMethod_);
+		PIRQueryGenerator_internal(PIRParameters& pirParameters, HomomorphicCrypto& cryptoMethod_, 
+        bool _verbose=true);
 		~PIRQueryGenerator_internal();
 
 		void startGenerateQuery();

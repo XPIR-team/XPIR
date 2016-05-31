@@ -33,6 +33,7 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
   current_query_index(0),
   current_dim_index(0),
   input_data(NULL),
+  verbose(true),
   cryptoMethod(NULL)
 {
 }
@@ -43,7 +44,7 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal():
  *	- vector <File*>& database : reference of a File pointer vector.
  *	- PIRParameters& param : reference to a PIRParameters object.
  **/
-PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& param, DBHandler* db):
+PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& param, DBHandler* db, bool _verbose):
   lwe(false),
   currentMaxNbPolys(0),
   GenericPIRReplyGenerator(param,db),
@@ -51,6 +52,7 @@ PIRReplyGeneratorNFL_internal::PIRReplyGeneratorNFL_internal( PIRParameters& par
   current_query_index(0),
   current_dim_index(0),
   input_data(NULL),
+  verbose(_verbose),
   cryptoMethod(NULL)
 {
   // cryptoMethod will be set later by setCryptoMethod
@@ -127,7 +129,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
     if (vtstop - vtstart > 1) 
     {
       vtstart = vtstop;
-      std::cout <<"PIRReplyGeneratorNFL_internal: Element " << i+1 << "/" << nbruns << " imported\r" << std::flush;
+      if (verbose) std::cout <<"PIRReplyGeneratorNFL_internal: Element " << i+1 << "/" << nbruns << " imported\r" << std::flush;
      wasVerbose = true;
      lastindex = i+1;
     }
@@ -139,7 +141,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
 
 #ifdef PERF_TIMERS
     // If feedback was given say we finished
-    if (wasVerbose && lastindex != nbFiles)  std::cout <<"PIRReplyGeneratorNFL_internal: Element " << nbruns << "/" << nbFiles/pirParam.alpha << " imported" << std::endl;
+    if (verbose && wasVerbose && lastindex != nbFiles)  std::cout <<"PIRReplyGeneratorNFL_internal: Element " << nbruns << "/" << nbFiles/pirParam.alpha << " imported" << std::endl;
 #endif
   
   /** FILE PADDING **/
@@ -154,7 +156,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
 	}
 
 	free(rawBits);
-	std::cout<<"PIRReplyGeneratorNFL_internal: Finished importing the database in " << omp_get_wtime() - start << " seconds" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Finished importing the database in " << omp_get_wtime() - start << " seconds" << std::endl;
 }
 
 #ifdef SNIFFER
@@ -194,8 +196,8 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
 		cryptoMethod->mul(resul[it], input[it], queries[0][index],queries[1][index], 0, 0);
   }
   double end = omp_get_wtime();
-	std::cout<<"PIRReplyGeneratorNFL_internal: Finished processing the sniffed data in " << end - start << " seconds" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: Processing throughput " << (double)chunkBytesize*8*iterations / ((end - start)*1000000000ULL) << " Gbps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Finished processing the sniffed data in " << end - start << " seconds" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Processing throughput " << (double)chunkBytesize*8*iterations / ((end - start)*1000000000ULL) << " Gbps" << std::endl;
   return database_wrapper;   
 }
 
@@ -237,8 +239,8 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
   // If aggregation is used we cannot iterate
   if ((pirParam.alpha != 1 || pirParam.d > 1) && nbr_of_iterations > 1)
   {
-    std::cout << "PIRReplyGeneratorNFL_internal: Cannot handle aggregation or dimensions on databases requiring multiple iterations" << std::endl;
-    std::cout << "PIRReplyGeneratorNFL_internal: Handling the database on a single iteration, this can cause memory issues ..." << std::endl;
+    if (verbose) std::cout << "PIRReplyGeneratorNFL_internal: Cannot handle aggregation or dimensions on databases requiring multiple iterations" << std::endl;
+    if (verbose) std::cout << "PIRReplyGeneratorNFL_internal: Handling the database on a single iteration, this can cause memory issues ..." << std::endl;
     nbr_of_iterations = 1;
     max_readable_size = dbhandler->getmaxFileBytesize();
   }
@@ -249,7 +251,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
   // If we need to do more than an iteration say it
   if (nbr_of_iterations > 1)
   {
-    std::cout << "PIRReplyGeneratorNFL_internal: Database is considered too large, processing it in " 
+    if (verbose) std::cout << "PIRReplyGeneratorNFL_internal: Database is considered too large, processing it in " 
       << nbr_of_iterations << " iterations" << std::endl; 
   }
 
@@ -257,7 +259,7 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
 // #pragma omp parallel for
   for (unsigned iteration = 0; iteration < nbr_of_iterations; iteration++)
   {
-    if (nbr_of_iterations > 1) cout << "PIRReplyGeneratorNFL_internal: Iteration " << iteration << endl; 
+    if (verbose && nbr_of_iterations > 1) cout << "PIRReplyGeneratorNFL_internal: Iteration " << iteration << endl; 
 
     repliesIndex = computeReplySizeInChunks(iteration*max_readable_size);
     // Import a chunk of max_readable_size bytes per file with an adapted offset
@@ -284,9 +286,9 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
     }
   }
 
-	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*database_size/(end - start) << "bps" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*database_size/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
   freeQueries();
 
   return database_wrapper;
@@ -328,9 +330,9 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
   freeInputData();
 #endif
   double end = omp_get_wtime();
-	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
   freeQueries();
 }
 
@@ -362,9 +364,9 @@ void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* d
   }
   freeInputData();
   double end = omp_get_wtime();
-	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
+	if (verbose) std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
   freeQueries();
 }
 
@@ -404,7 +406,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
     reply_elt_nbr = 1;
     for (unsigned int j = i + 1 ; j < pirParam.d ; j++ ) reply_elt_nbr *= pirParam.n[j];
 #ifdef DEBUG
-  cout << "PIRReplyGeneratorNFL_internal:  currentMaxNbPolys = " << currentMaxNbPolys << endl;
+  if (verbose) cout << "PIRReplyGeneratorNFL_internal:  currentMaxNbPolys = " << currentMaxNbPolys << endl;
 #endif
 
  
@@ -433,7 +435,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
       if (vtstop - vtstart > 1) 
       {
         vtstart = vtstop;
-        std::cout <<"PIRReplyGeneratorNFL_internal: Reply " << j+1 << "/" << reply_elt_nbr << " generated\r" << std::flush;
+        if (verbose) std::cout <<"PIRReplyGeneratorNFL_internal: Reply " << j+1 << "/" << reply_elt_nbr << " generated\r" << std::flush;
         wasVerbose = true;
       }
 #endif
@@ -446,7 +448,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
 #ifdef DEBUG
     if ( i > 0)
     {
-      cout << "PIRReplyGeneratorNFL_internal: reply_elt_nbr_OLD: " << old_reply_elt_nbr << endl;
+      if (verbose) cout << "PIRReplyGeneratorNFL_internal: reply_elt_nbr_OLD: " << old_reply_elt_nbr << endl;
     }
 #endif
     if (i > 0)
@@ -476,7 +478,7 @@ void PIRReplyGeneratorNFL_internal::generateReply()
   }
 
   // Compute execution time
-  printf( "PIRReplyGeneratorNFL_internal: Global reply generation took %f (omp)seconds\n", omp_get_wtime() - start);
+  if (verbose) printf( "PIRReplyGeneratorNFL_internal: Global reply generation took %f (omp)seconds\n", omp_get_wtime() - start);
 }
 
 
@@ -524,7 +526,7 @@ double PIRReplyGeneratorNFL_internal::precomputationSimulation(const PIRParamete
       tmp = NULL;
   }
   double result = omp_get_wtime() - start;
-  std::cout << "PIRReplyGeneratorNFL_internal: Deserialize took " << result << " (omp)seconds" << std::endl;
+  if (verbose) std::cout << "PIRReplyGeneratorNFL_internal: Deserialize took " << result << " (omp)seconds" << std::endl;
   freeQueries();
   freeInputData();
   freeResult();
@@ -583,13 +585,13 @@ lwe_cipher* result)
 #ifdef CRYPTO_DEBUG  
 		    if(current_poly==0)
         {
-			    std::cout<<"Query poped.a  ";NFLTools::print_poly64hex(queries[0][query_index].a,4);	
-			    if (lwe)	
+			    if (verbose) std::cout<<"Query poped.a  ";NFLTools::print_poly64hex(queries[0][query_index].a,4);	
+			    if (verbose && lwe)	
           {
             std::cout<<"Query poped.b  ";NFLTools::print_poly64hex(queries[0][query_index].b,4);
           }
-          std::cout<<"Query poped.a' ";NFLTools::print_poly64hex(queries[1][query_index].a,4);	
-          if (lwe) 
+          if (verbose) std::cout<<"Query poped.a' ";NFLTools::print_poly64hex(queries[1][query_index].a,4);	
+          if (verbose && lwe) 
           {
             std::cout<<"Query poped.b' ";NFLTools::print_poly64hex(queries[1][query_index].b,4);
           }
@@ -614,7 +616,7 @@ lwe_cipher* result)
       if (vtstop - vtstart > 1) 
       {
         vtstart = vtstop;
-        if(currentMaxNbPolys != 1) std::cout <<"PIRReplyGeneratorNFL_internal: Dealt with chunk " << 
+        if(verbose && currentMaxNbPolys != 1) std::cout <<"PIRReplyGeneratorNFL_internal: Dealt with chunk " << 
           current_poly+1 << "/" << currentMaxNbPolys << "\r" << std::flush;
         wasVerbose = true;
       }
@@ -624,7 +626,7 @@ lwe_cipher* result)
   }
 
 #ifdef PERF_TIMERS
-  if (wasVerbose) std::cout <<"                                                     \r" << std::flush;
+  if (verbose && wasVerbose) std::cout <<"                                                     \r" << std::flush;
 #endif
 
 }
@@ -736,7 +738,7 @@ void PIRReplyGeneratorNFL_internal::initQueriesBuffer() {
 	}
 #endif
 #ifdef DEBUG
-	std::cout<<"Created a queriesBuf for "<<nbQueriesBuf<<" queries"<<std::endl;	
+	if (verbose) std::cout<<"Created a queriesBuf for "<<nbQueriesBuf<<" queries"<<std::endl;	
 #endif
 
 }
@@ -765,7 +767,7 @@ void PIRReplyGeneratorNFL_internal::pushQuery(char* rawQuery)
   } 
   if (current_dim_index >= pirParam.d)
   {
-    std::cout << "PIRReplyGeneratorNFL: Finished importing query (this message should appear only once)" << std::endl;
+    if (verbose) std::cout << "PIRReplyGeneratorNFL_internal: Finished importing query (this message should appear only once)" << std::endl;
   } 
 
 }
@@ -783,8 +785,8 @@ void PIRReplyGeneratorNFL_internal::pushQuery(char* rawQuery, unsigned int size,
   a = (poly64) rawQuery;
   if (lwe) b = a+nbModuli*polyDegree;
 #ifdef CRYPTO_DEBUG
-	std::cout<<"\nQuery received.a ";NFLTools::print_poly64(a,4);	
-	if (lwe) {std::cout<<"Query received.b ";NFLTools::print_poly64hex(b,4);}
+	if (verbose) std::cout<<"\nQuery received.a ";NFLTools::print_poly64(a,4);	
+	if (verbose && lwe) {std::cout<<"Query received.b ";NFLTools::print_poly64hex(b,4);}
 #endif
 #ifdef SHOUP
 
@@ -806,8 +808,8 @@ void PIRReplyGeneratorNFL_internal::pushQuery(char* rawQuery, unsigned int size,
   queriesBuf[dim][1][nbr].b = bp;
 
 #ifdef CRYPTO_DEBUG
-	std::cout << "Query NFL pushed.a' "; NFLTools::print_poly64hex(queriesBuf[dim][1][nbr].a,4);	
-	if (lwe) { std::cout << "Query NFL pushed.b' "; NFLTools::print_poly64hex(queriesBuf[dim][1][nbr].b,4);}
+	if (verbose) std::cout << "Query NFL pushed.a' "; NFLTools::print_poly64hex(queriesBuf[dim][1][nbr].a,4);	
+	if (verbose && lwe) { std::cout << "Query NFL pushed.b' "; NFLTools::print_poly64hex(queriesBuf[dim][1][nbr].b,4);}
 #endif
 #else
   queriesBuf[dim][nbr].a = a;
@@ -856,7 +858,7 @@ void PIRReplyGeneratorNFL_internal::setCryptoMethod(CryptographicSystem* cm)
 void PIRReplyGeneratorNFL_internal::freeInputData()
 {
 #ifdef DEBUG
-  std:cout << "PIRReplyGeneratorNFL_internal: freeing input_data" << std::endl;
+  if (verbose) std:cout << "PIRReplyGeneratorNFL_internal: freeing input_data" << std::endl;
 #endif
   uint64_t theoretical_files_nbr = 1;
 	for (unsigned int i = 0 ; i < pirParam.d ; i++) theoretical_files_nbr *= pirParam.n[i];

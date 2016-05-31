@@ -23,10 +23,11 @@
  *		- PIRParameters& pirParameters_ : PIRParameters reference shared with PIRClient.
  *		- crypto_ptr cryptoMethod_ 			: shared_pointer of Homomorphic crypto.
  **/
-PIRQueryGenerator_internal::PIRQueryGenerator_internal(PIRParameters& pirParameters_,HomomorphicCrypto& cryptoMethod_) : 
+PIRQueryGenerator_internal::PIRQueryGenerator_internal(PIRParameters& pirParameters_,HomomorphicCrypto& cryptoMethod_, bool _verbose) : 
 	pirParams(pirParameters_),
 	cryptoMethod(cryptoMethod_),
   queryBuffer("query_buffer"),
+  verbose(_verbose),
 	mutex()
 {}
 
@@ -47,12 +48,12 @@ void PIRQueryGenerator_internal::generateQuery()
 			if (i == coord[j]) queryBuffer.push(cryptoMethod.encrypt(1, j + 1 ));
 			else queryBuffer.push(cryptoMethod.encrypt(0, j + 1));
 	  }
-  std::cout << "PIRQueryGenerator_internal: Generated a " << pirParams.n[j] << " element query" << std::endl;
+  if (verbose) std::cout << "PIRQueryGenerator_internal: Generated a " << pirParams.n[j] << " element query" << std::endl;
   }
   double end = omp_get_wtime();
   delete[] coord;
   
-  std::cout << "PIRQueryGenerator_internal: All the queries have been generated, total time is " << end - start << " seconds" << std::endl;
+  if (verbose) std::cout << "PIRQueryGenerator_internal: All the queries have been generated, total time is " << end - start << " seconds" << std::endl;
 }
 
 /**

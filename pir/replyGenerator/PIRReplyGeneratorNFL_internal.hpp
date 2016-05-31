@@ -31,6 +31,7 @@ public:
     void setPirParams(PIRParameters& param);
 private:
     bool lwe;
+    bool verbose;
     uint64_t current_query_index;
     uint64_t current_dim_index;
 #ifdef SHOUP
@@ -64,7 +65,7 @@ protected:
 	
 public:
     PIRReplyGeneratorNFL_internal();
-    PIRReplyGeneratorNFL_internal(PIRParameters& param, DBHandler *db);
+    PIRReplyGeneratorNFL_internal(PIRParameters& param, DBHandler *db, bool _verbose=true);
     ~PIRReplyGeneratorNFL_internal();
     void importDataNFL(uint64_t offset, uint64_t bytes_per_file);
     void initQueriesBuffer();
