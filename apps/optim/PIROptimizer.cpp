@@ -103,23 +103,27 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
   // Get all the crypto modules
   HomomorphicCryptoFactory_internal::getAllCryptoSystems(crypto_systems_vec);
 
-  if(fixedVars.manual_crypto_params == "")
-  {
-    noCryptoSystemOptim(exp_nbr);
-  }
-  else
-  {
-    std::cout << "Optimizer: Crypto parameters manually forced to " << fixedVars.manual_crypto_params << std::endl;
+  /******************************************************
+   * Remove the following if-else block to remove checking
+   * for no crypto option.
+   *****************************************************/
+  // if(fixedVars.manual_crypto_params == "")
+  // {
+  //   noCryptoSystemOptim(exp_nbr);
+  // }
+  // else
+  // {
+  //   std::cout << "Optimizer: Crypto parameters manually forced to " << fixedVars.manual_crypto_params << std::endl;
 
-    // Get a regular expression from the requested params
-    cp_rex = new std::regex(fixedVars.manual_crypto_params); 
+  //   // Get a regular expression from the requested params
+  //   cp_rex = new std::regex(fixedVars.manual_crypto_params); 
 
-    // Only take into account NoCryptography as a possibility if requested
-    if(std::regex_match("NoCryptography", *cp_rex))
-    {
-      noCryptoSystemOptim(exp_nbr);
-    }
-  }
+  //   // Only take into account NoCryptography as a possibility if requested
+  //   if(std::regex_match("NoCryptography", *cp_rex))
+  //   {
+  //     noCryptoSystemOptim(exp_nbr);
+  //   }
+  // }
 //    else
 //    {
 //      std::vector<std::string> fields;
