@@ -284,7 +284,43 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
   }
 }
 
+void download(PIRClientSimple& client){
+  // Start by connecting to the PIR server
+  client.connect();
 
+  // Downloads the file catalog
+  client.downloadCatalog();
+
+  // Get from the server whether we are in client-driven mode or not
+  client.rcvPIRParamsExchangeMethod();
+
+  // Use the optimizer to choose best parameters 
+  // (returns immediately in server-driven mode)
+  client.optimize();  
+
+  // Send PIR and cryptographic parameters to the server in client-driven mode
+  // and receive and process them in server-driven mode
+  client.processCryptoParams();
+  client.processPIRParams();
+
+  /*User chooses the file here.*/
+  client.chooseFile();
+  
+  double start = omp_get_wtime();
+  
+  
+  /* Asynchronously generate and send the request
+     separately in two threads*/
+  client.startProcessQuery();
+  /* Receive asynchronously the response from the server and
+     asynchronously writes it */
+  client.startProcessResult();
+
+  client.joinAllThreads();
+  double end = omp_get_wtime();
+  cout << "CLI: Query RTT was " << end-start << " seconds" << endl;
+
+}
 
 int main(int argc, char** argv) 
 {
@@ -370,47 +406,30 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  // If we are not in dry-run mode create client and controller
-  PIRClientSimple client(ios, clientParams, fixedVars);
-  PIRController controller(client);
- 
-  // Set no_pipeline if needed
-  if(no_pipeline) client.no_pipeline(true);
+  // create main menu:
+  do{
+    // If we are not in dry-run mode create client and controller
+    PIRClientSimple client(ios, clientParams, fixedVars);
+    PIRController controller(client);
+   
+    // Set no_pipeline if needed
+    if(no_pipeline) client.no_pipeline(true);
 
-  // Start by connecting to the PIR server
-  client.connect();
+    cout<<"Main Menu -- Enter an option:"<<endl;
+    cout<<"\t1. Upload file"<<endl;
+    cout<<"\t2. Download file"<<endl;
+    cout<<"\t3. Exit"<<endl;
+    int input;
+    cin>>input;
+    cin.clear();
+    cin.ignore(10000,'\n');
+    if (input  == 2){
+      download(client);
+    }
+    else if (input == 3)
+      break;
 
-  // Downloads the file catalog
-  client.downloadCatalog();
-
-  // Get from the server whether we are in client-driven mode or not
-  client.rcvPIRParamsExchangeMethod();
-
-  // Use the optimizer to choose best parameters 
-  // (returns immediately in server-driven mode)
-  client.optimize();  
-
-  // Send PIR and cryptographic parameters to the server in client-driven mode
-  // and receive and process them in server-driven mode
-  client.processCryptoParams();
-  client.processPIRParams();
-
-  /*User chooses the file here.*/
-  client.chooseFile();
-  
-  double start = omp_get_wtime();
-  
-  
-  /* Asynchronously generate and send the request
-     separately in two threads*/
-  client.startProcessQuery();
-  /* Receive asynchronously the response from the server and
-     asynchronously writes it */
-  client.startProcessResult();
-
-  client.joinAllThreads();
-  double end = omp_get_wtime();
-  cout << "CLI: Query RTT was " << end-start << " seconds" << endl;
+  }while(true);
   cout << "CLI: Exiting..." << endl;
 
   return EXIT_SUCCESS;

@@ -28,6 +28,7 @@
 #include "../crypto/HomomorphicCryptoFactory_internal.hpp"
 
 void sighandler(int sig_num);
+void download(PIRClientSimple&);
 
 using namespace std;
 namespace po = boost::program_options;

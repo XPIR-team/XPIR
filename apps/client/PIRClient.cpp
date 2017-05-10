@@ -65,6 +65,7 @@ void PIRClientSimple::connect()
 		exitWithErrorMessage(__FUNCTION__, ex.what());
 	}
 }
+
 /**
  *  Downloads the file catalog from the server.
  *  Exception :
