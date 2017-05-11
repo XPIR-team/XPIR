@@ -335,40 +335,6 @@ void PIRReplyGeneratorNFL_internal::generateReplyGenericFromData(const imported_
 }
 
 
-// Function used to generate a PIR reply if:
-// - database is small enough to be kept in memory
-// - it has already been imported to it
-void PIRReplyGeneratorNFL_internal::generateReplyExternal(imported_database_t* database)
-{
-  uint64_t max_readable_size, database_size, nbr_of_iterations;
-
-  database_size = database->beforeImportElementBytesize * database->nbElements;
-  max_readable_size = 1280000000UL/database->nbElements;
-  // Ensure it is not larger than maxfilebytesize
-  max_readable_size = min(max_readable_size, database->beforeImportElementBytesize);
-  // Given readable size we get how many iterations we need
-  nbr_of_iterations = ceil((double)database->beforeImportElementBytesize/max_readable_size);
-
-
-  boost::mutex::scoped_lock l(mutex);
-  double start = omp_get_wtime();
-  for (unsigned iteration = 0; iteration < nbr_of_iterations; iteration++)
-  {
-
-    input_data = (lwe_in_data*) database->imported_database_ptr;
-    currentMaxNbPolys = database->polysPerElement;
-    repliesAmount = computeReplySizeInChunks(database->beforeImportElementBytesize);
-    generateReply();
-  }
-  freeInputData();
-  double end = omp_get_wtime();
-	std::cout<<"PIRReplyGeneratorNFL_internal: Total process time " << end - start << " seconds" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: DB processing throughput " << 8*dbhandler->getmaxFileBytesize()*dbhandler->getNbStream()/(end - start) << "bps" << std::endl;
-	std::cout<<"PIRReplyGeneratorNFL_internal: Client cleartext reception throughput  " << 8*dbhandler->getmaxFileBytesize()/(end - start) << "bps" << std::endl;
-  freeQueries();
-}
-
-
 /**
  *	Prepare reply and start absoptions.
  **/

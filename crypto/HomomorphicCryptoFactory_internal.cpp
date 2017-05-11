@@ -74,14 +74,4 @@ void HomomorphicCryptoFactory_internal::getAllCryptoSystems(std::vector<Homomorp
   crypto_sys_vec.push_back(crypto_ptr);
 }
 
-void HomomorphicCryptoFactory_internal::getOneCryptoSystem(std::vector<HomomorphicCrypto*>& crypto_sys_vec, std::string crypto_system_desc)
-{
-  std::vector<std::string> fields;
-  boost::algorithm::split(fields, crypto_system_desc, boost::algorithm::is_any_of(":"));
-  
-  HomomorphicCrypto* h;
-  h = getCrypto(fields[0]);
-  crypto_sys_vec.push_back(h);
-}
-
 

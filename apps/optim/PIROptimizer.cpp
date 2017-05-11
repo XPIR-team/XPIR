@@ -725,11 +725,6 @@ double PIROptimizer::getQueryElemGenCost(unsigned int d, crypto_ptr crypto)
   return result;
 }
 
-const PIRParameters& PIROptimizer::getParameters()
-{
-  return pirParameters;
-}
-
 double PIROptimizer::getAbs1PlaintextTime(HomomorphicCrypto* crypto_system)
 {
   bool shortversion = true; 

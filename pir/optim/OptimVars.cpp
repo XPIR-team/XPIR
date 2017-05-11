@@ -49,12 +49,6 @@ OptimVars::OptimVars(FitnessType fitness_, FixedVars fixed_vars):
 //Destructor
 OptimVars::~OptimVars() {}
 
-// Method to change the fitness method
-void OptimVars::setType(FitnessType fitness_)
-{
-  fitness = fitness_;
-}
-
 
 // Getters and setters
 double OptimVars::getGenQ() { return costs[GENQ]; }

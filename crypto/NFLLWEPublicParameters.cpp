@@ -145,11 +145,6 @@ unsigned int NFLLWEPublicParameters::getAbsorptionBitsize(unsigned int i)
 	return (absPerCoordinateBitsize < 0) ? 0 : getpolyDegree() * absPerCoordinateBitsize;
 }
 
-unsigned int NFLLWEPublicParameters::getCiphertextSize()
-{
-  return getpolyDegree() * 64 * 2 *crypto_container->getnbModuli();
-}
-
 unsigned int NFLLWEPublicParameters::getCiphertextBitsize()
 {
 	return getModulusRepresentationBitsize() * getpolyDegree() * 2 ;

@@ -38,7 +38,3 @@ void WriteEvent::addtoWrittenSize(uint64_t writtenSize_)
 	writtenSize += writtenSize_;
 }
 
-void WriteEvent::setWrittenSize(uint64_t writtenSize_)
-{
-	writtenSize = writtenSize_;
-}

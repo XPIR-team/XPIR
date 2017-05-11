@@ -492,14 +492,6 @@ void NFLlib::serializeData32 (uint32_t* indata, unsigned char* outdata, unsigned
 // Helper functions
 // *********************************************************
 
-// Allocate a polynomial potentially with all coefficients set to zero if nullpoly = true
-poly64 NFLlib::allocpoly(bool nullpoly)
-{
-  if (nullpoly == true) return (poly64) calloc(polyDegree*nbModuli,sizeof(uint64_t));
-  else return (poly64) malloc(polyDegree*nbModuli*sizeof(uint64_t));
-}
-
-
 // Lift a polynomial in CRT representation, into a polynomial with large integer coefficients
 mpz_t* NFLlib::poly2mpz(poly64 p)
 {
