@@ -23,13 +23,13 @@ PIRReplyGeneratorGMP::PIRReplyGeneratorGMP()
 
 PIRReplyGeneratorGMP::PIRReplyGeneratorGMP( PIRParameters& param, DBHandler *db) :
   GenericPIRReplyGenerator(param,db),
-	finished(false) 
+	finished(false)
 {}
 
 /**
  * Read raw data from files and make padding if necessary
  **/
-void PIRReplyGeneratorGMP::importData() 
+void PIRReplyGeneratorGMP::importData()
 {
 	unsigned int size = static_cast<double>(cryptoMethod->getPublicParameters().getAbsorptionBitsize()/GlobalConstant::kBitsPerByte), theoretic_nbr_elements = 1 ;
 	char rawBits[size];
@@ -39,7 +39,7 @@ void PIRReplyGeneratorGMP::importData()
 
   // Ugly ugly trick until this class is improved
   (*(PaillierPublicParameters *) &cryptoMethod->getPublicParameters()).getPubKey()->complete_key(pirParam.d+1);
-  
+
 	for (unsigned int i = 0 ; i < pirParam.d ; i++)
 		theoretic_nbr_elements *= pirParam.n[i];
 
@@ -62,7 +62,7 @@ void PIRReplyGeneratorGMP::importData()
     // Pad if needed the last group of pirParam.alpha files
     if (i == nbFiles - 1)
     {
-      for (unsigned int j = 0 ; j < maxChunkSize * (pirParam.alpha - 1 - (i % pirParam.alpha)); j++) 
+      for (unsigned int j = 0 ; j < maxChunkSize * (pirParam.alpha - 1 - (i % pirParam.alpha)); j++)
       {
 			mpz_init_set_ui(datae[i/pirParam.alpha][j + ((i+1) % pirParam.alpha) * maxChunkSize], 0);
       }
@@ -73,7 +73,7 @@ void PIRReplyGeneratorGMP::importData()
   std::cout << "PIRReplyGeneratorGMP: " << pirParam.alpha*theoretic_nbr_elements - nbFiles << "  non-aggregated padding files need to be added ..." << std::endl;
 
 	/* make file padding if necessary **/
-	for (uint64_t i = ceil((double)nbFiles/pirParam.alpha) ; i < theoretic_nbr_elements ; i++) 
+	for (uint64_t i = ceil((double)nbFiles/pirParam.alpha) ; i < theoretic_nbr_elements ; i++)
 	{
 		datae[i] = new mpz_t[maxChunkSize*pirParam.alpha];
 		for (unsigned int k = 0 ; k < maxChunkSize*pirParam.alpha ; k++)
@@ -82,7 +82,7 @@ void PIRReplyGeneratorGMP::importData()
 		}
 	}
   // From now on all data sizes take into account aggregation
-	maxChunkSize *= pirParam.alpha; 
+	maxChunkSize *= pirParam.alpha;
 }
 
 void PIRReplyGeneratorGMP::importFakeData(uint64_t plaintext_nbr)
@@ -91,13 +91,13 @@ void PIRReplyGeneratorGMP::importFakeData(uint64_t plaintext_nbr)
   unsigned int abs_size = cryptoMethod->getPublicParameters().getAbsorptionBitsize()/GlobalConstant::kBitsPerByte;
   unsigned int ciph_size = cryptoMethod->getPublicParameters().getCiphertextBitsize()/GlobalConstant::kBitsPerByte;
   char *raw_data, *raw_data2;
-  
+
   for (unsigned int i = 0 ; i < pirParam.d ; i++)
-		file_nbr *= pirParam.n[i];	
-  
+		file_nbr *= pirParam.n[i];
+
   datae = new mpz_t*[file_nbr];
-  raw_data = (char*) malloc(abs_size + 1);	
-  raw_data2 = (char*) malloc(ciph_size + 1);	
+  raw_data = (char*) malloc(abs_size + 1);
+  raw_data2 = (char*) malloc(ciph_size + 1);
   memset(raw_data, 0xaa, abs_size);
   memset(raw_data2, 0xaa, ciph_size);
   maxChunkSize = plaintext_nbr;
@@ -116,8 +116,8 @@ void PIRReplyGeneratorGMP::importFakeData(uint64_t plaintext_nbr)
   {
     mpz_import(queriesBuf[0][i], ciph_size, 1, sizeof(char), 0, 0, raw_data2);
   }
-  free(raw_data); 
-  free(raw_data2); 
+  free(raw_data);
+  free(raw_data2);
 }
 
 void PIRReplyGeneratorGMP::clearFakeData(uint64_t plaintext_nbr)
@@ -125,10 +125,10 @@ void PIRReplyGeneratorGMP::clearFakeData(uint64_t plaintext_nbr)
   unsigned int file_nbr = 1;
   unsigned int abs_size = cryptoMethod->getPublicParameters().getAbsorptionBitsize()/GlobalConstant::kBitsPerByte;
   char* raw_data;
-  
+
   for (unsigned int i = 0 ; i < pirParam.d ; i++)
-		file_nbr *= pirParam.n[i];	
-  
+		file_nbr *= pirParam.n[i];
+
   maxChunkSize = plaintext_nbr;
 
   for (unsigned int i = 0 ; i < file_nbr; i++)
@@ -145,7 +145,7 @@ double PIRReplyGeneratorGMP::generateReplySimulation(const PIRParameters& pir_pa
 {
   setPirParams((PIRParameters&) pir_params);
   initQueriesBuffer();
-  
+
   importFakeData(plaintext_nbr);
 
   double start = omp_get_wtime();
@@ -166,17 +166,17 @@ imported_database_t PIRReplyGeneratorGMP::generateReplyGeneric(bool keep_importe
 	//mutex.lock();
   generateReply();
 
-  if(keep_imported_data) 
+  if(keep_imported_data)
   {
     database_wrapper.imported_database_ptr = (void*)datae;
     database_wrapper.polysPerElement = maxChunkSize;
-  } 
-  else 
+  }
+  else
   {
     unsigned long theoretic_nbr_elements = 1;
 	  for (unsigned int i = 0 ; i < pirParam.d ; i++)
 		  theoretic_nbr_elements *= pirParam.n[i];
-    for (unsigned int i = 0 ; i < theoretic_nbr_elements ; i++ ) 
+    for (unsigned int i = 0 ; i < theoretic_nbr_elements ; i++ )
     {
       for (unsigned int j = 0; j < maxChunkSize; j++)
       {
@@ -185,7 +185,7 @@ imported_database_t PIRReplyGeneratorGMP::generateReplyGeneric(bool keep_importe
       delete[] datae[i];
     }
     delete[] datae;
-	
+
     for (unsigned int i = 0 ; i < pirParam.d ; i++)
 	  {
 		  for (unsigned int j = 0 ; j < pirParam.n[i] ; j++)
@@ -211,7 +211,7 @@ void PIRReplyGeneratorGMP::generateReplyGenericFromData(const imported_database_
 /**
  * Compute Lipmaa PIR Scheme with imported data.
  **/
-void PIRReplyGeneratorGMP::generateReply() 
+void PIRReplyGeneratorGMP::generateReply()
 {
 	uint64_t pir_nbr;
 	double start;
@@ -232,10 +232,10 @@ void PIRReplyGeneratorGMP::generateReply()
     pir_nbr = 1;
    	for (unsigned int j = i+1  ; j < pirParam.d ; j++)
 		  pir_nbr *= pirParam.n[j];
-    
-    if (pir_nbr!=1) std::cout << "PIRReplyGeneratorGMP: Generating " << pir_nbr << " replies in recursion level " << i+1 << std::endl; 
 
-		reply_vec = new mpz_t*[pir_nbr]; 
+    if (pir_nbr!=1) std::cout << "PIRReplyGeneratorGMP: Generating " << pir_nbr << " replies in recursion level " << i+1 << std::endl;
+
+		reply_vec = new mpz_t*[pir_nbr];
 
 		queries = queriesBuf[i];
 
@@ -251,7 +251,7 @@ void PIRReplyGeneratorGMP::generateReply()
 #ifdef PERF_TIMERS
       // Give some feedback if it takes too long
       double vtstop = omp_get_wtime();
-      if (vtstop - vtstart > 1) 
+      if (vtstop - vtstart > 1)
       {
         vtstart = vtstop;
         if (pir_nbr!=1) std::cout <<"PIRReplyGeneratorGMP: Reply " << j+1 << "/" << pir_nbr << " generated\r" << std::flush;
@@ -260,7 +260,7 @@ void PIRReplyGeneratorGMP::generateReply()
 #endif
 
     }
-    // Always print feedback for last reply 
+    // Always print feedback for last reply
     if (pir_nbr!=1) std::cout <<"PIRReplyGeneratorGMP: Reply " << pir_nbr << "/" << pir_nbr << " generated" << std::endl;
 
     // Delete intermediate data obtained on the recursions
@@ -268,12 +268,12 @@ void PIRReplyGeneratorGMP::generateReply()
     {
       for (unsigned int j = 0 ; j < pirParam.n[i] ; j++ ) delete[] data_z[j];
 		  delete[] data_z;
-    } 
+    }
 
 		data_z = reply_vec;
 	}
 
-	printf( "PIRReplyGeneratorGMP: Global reply generation took %f seconds\n", omp_get_wtime() - start); 
+	printf( "PIRReplyGeneratorGMP: Global reply generation took %f seconds\n", omp_get_wtime() - start);
 
   repliesArray = (char**)calloc(maxChunkSize,sizeof(char*));
   repliesAmount = maxChunkSize;
@@ -295,11 +295,11 @@ void PIRReplyGeneratorGMP::generateReply()
  *  - int s : current dimension
  *  - mpz_t* result : result array, no need to init
  **/
-	void 
-PIRReplyGeneratorGMP::generateReply(mpz_t *queries, 
-		mpz_t** data, int begin_data,    
+	void
+PIRReplyGeneratorGMP::generateReply(mpz_t *queries,
+		mpz_t** data, int begin_data,
 		int dimension,
-		mpz_t* result) 
+		mpz_t* result)
 {
   int affichages = 1;
   unsigned int data_size =  pirParam.n[dimension];
@@ -323,9 +323,9 @@ PIRReplyGeneratorGMP::generateReply(mpz_t *queries,
     for (unsigned int file = 1, k = begin_data + 1 ; file < data_size ; file++, k++)
 		{
 			computeMul(queries[file], data[k][chunk], replyTmp, dimension+init_s+1);
-			
+
 			if(dimension != 0) mpz_clear(data[k][chunk]);
-			
+
 			//We add the filechunks of index chunk for the files of index file
 			// eg :  file[1]->chunk[1] + file[2]->chunk[1] + ... + file[file]->chunk[chunk]
 			computeSum(result[chunk], replyTmp, dimension+init_s+1);
@@ -333,13 +333,13 @@ PIRReplyGeneratorGMP::generateReply(mpz_t *queries,
 		mpz_clear(replyTmp);
 
 #ifdef CRYPTO_DEBUG
-    gmp_printf("PIRReplyGeneratorGMP: Reply chunk generated %Zd\n\n",result[chunk]); 
+    gmp_printf("PIRReplyGeneratorGMP: Reply chunk generated %Zd\n\n",result[chunk]);
 #endif
 
 #ifdef PERF_TIMERS
     // Give some feedback if it takes too long
     double vtstop = omp_get_wtime();
-    if (vtstop - vtstart > 1) 
+    if (vtstop - vtstart > 1)
     {
       vtstart = vtstop;
       if(maxChunkSize != 1) std::cout <<"PIRReplyGeneratorGMP: Dealt with chunk " << chunk+1 << "/" << maxChunkSize << "\r" << std::flush;
@@ -363,11 +363,11 @@ PIRReplyGeneratorGMP::generateReply(mpz_t *queries,
  *  - mpz_t res : result of operation
  *  - int s : dimension
  **/
-void PIRReplyGeneratorGMP::computeMul(mpz_t query, mpz_t n, mpz_t res, int modulus_index) 
-{	
+void PIRReplyGeneratorGMP::computeMul(mpz_t query, mpz_t n, mpz_t res, int modulus_index)
+{
 	cryptoMethod->e_mul_const(res, query, n, modulus_index );
 #ifdef CRYPTO_DEBUG
-  gmp_printf("PIRReplyGeneratorGMP: Raising %Zd\n To the power %Zd\nResult is %Zd\nModulus index is %d\n\n",query, n, res,modulus_index); 
+  gmp_printf("PIRReplyGeneratorGMP: Raising %Zd\n To the power %Zd\nResult is %Zd\nModulus index is %d\n\n",query, n, res,modulus_index);
 #endif
 }
 
@@ -378,7 +378,7 @@ void PIRReplyGeneratorGMP::computeMul(mpz_t query, mpz_t n, mpz_t res, int modul
  * 	- mpz_t b : second data to multoply
  * 	- int s : dimension
  **/
-void PIRReplyGeneratorGMP::computeSum(mpz_t a, mpz_t b, int modulus_index) 
+void PIRReplyGeneratorGMP::computeSum(mpz_t a, mpz_t b, int modulus_index)
 {
 	cryptoMethod->e_add(a, a, b, modulus_index);
 }
@@ -400,7 +400,7 @@ void PIRReplyGeneratorGMP::initQueriesBuffer()
 
 }
 
-void PIRReplyGeneratorGMP::setCryptoMethod(CryptographicSystem* crypto_method) 
+void PIRReplyGeneratorGMP::setCryptoMethod(CryptographicSystem* crypto_method)
 {
 	cryptoMethod = (PaillierAdapter*) crypto_method;
 }
@@ -410,7 +410,7 @@ void PIRReplyGeneratorGMP::pushQuery(char* rawQuery, unsigned int size, int dim,
 	mpz_import(queriesBuf[dim][nbr], size, 1, sizeof(char), 0, 0, rawQuery);
 #ifdef CRYPTO_DEBUG
   gmp_printf("Imported query element: %Zd\n", queriesBuf[dim][nbr]);
-#endif 
+#endif
 }
 
 void PIRReplyGeneratorGMP::pushReply(mpz_t* replies, unsigned init_index, unsigned replies_nbr)
@@ -435,11 +435,6 @@ void PIRReplyGeneratorGMP::pushReply(mpz_t* replies, unsigned init_index, unsign
 			repliesArray[i] = tmp;
     }
 	}
-}
-
-bool PIRReplyGeneratorGMP::isFinished()
-{
-	return finished;
 }
 
 unsigned long int PIRReplyGeneratorGMP::computeReplySizeInChunks(unsigned long int maxFileBytesize)

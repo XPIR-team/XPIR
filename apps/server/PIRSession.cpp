@@ -44,7 +44,7 @@ void PIRSession::setDBHandler(DBHandler *db)
  **/
 bool PIRSession::start(session_option_t session_option)
 {
-  
+
   uint64_t nbFiles=dbhandler->getNbStream();
   maxFileBytesize = dbhandler->getmaxFileBytesize();
   short exchange_method = (session_option.driven_mode) ? CLIENT_DRIVEN : SERVER_DRIVEN;
@@ -86,12 +86,12 @@ bool PIRSession::start(session_option_t session_option)
     sendPirParams();
   }
 
-  // If one of the functions above generates an error, handmadeExceptionRaised is set 
+  // If one of the functions above generates an error, handmadeExceptionRaised is set
   if (!handmadeExceptionRaised)
   {
     // This is just a download thread. Reply generation is unlocked (by a mutex)
     // when this thread finishes.
-    startProcessQuery(); 
+    startProcessQuery();
 
     // Import the database
     // Start reply generation when mutex unlocked
@@ -111,8 +111,8 @@ bool PIRSession::start(session_option_t session_option)
 }
 
 
-/** 
- * Getter for other classes (such as PIRServer) 
+/**
+ * Getter for other classes (such as PIRServer)
  **/
 tcp::socket& PIRSession::getSessionSocket()
 {
@@ -120,12 +120,12 @@ tcp::socket& PIRSession::getSessionSocket()
 }
 
 /**
- * Send the catalog to the client as a string. 
+ * Send the catalog to the client as a string.
  * Format : file_list_size \n filename1 \n filesize1 \n filename2 \n ... filesizeN \n
  *          if SEND_CATALOG is defined and catalog size is less than 1000, the full catalog is sent
  *			otherwise only the size of the catalog is sent
  **/
-void PIRSession::sendCatalog() 
+void PIRSession::sendCatalog()
 {
 	string buf;
 #ifdef SEND_CATALOG
@@ -139,12 +139,12 @@ void PIRSession::sendCatalog()
 #endif
   	// Send the buffer
   	const boost::uint64_t size = buf.size();
-	  
+
   	try
   	{
     	if (write(sessionSocket, boost::asio::buffer(&size, sizeof(size))) <= 0)
       	 	exitWithErrorMessage(__FUNCTION__,"Error sending catalog size");
-    	if (write(sessionSocket, boost::asio::buffer(buf.c_str(), size)) < size) 
+    	if (write(sessionSocket, boost::asio::buffer(buf.c_str(), size)) < size)
       	  	exitWithErrorMessage(__FUNCTION__,"Error sending catalog");
   	} catch (std::exception const& ex) {
     	exitWithErrorMessage(__FUNCTION__,"Error sending catalog: " + string(ex.what()));
@@ -152,25 +152,25 @@ void PIRSession::sendCatalog()
   	writeWarningMessage(__FUNCTION__ , "done.");
 }
 
-void PIRSession::sendCryptoParams() 
+void PIRSession::sendCryptoParams()
 {
   std::cout << "PIRSession: Mandatory crypto params sent to the client are " << pirParam.crypto_params << std::endl;
 
-  try 
+  try
   {
     int crypto_params_size = pirParam.crypto_params.size();
 
     write(sessionSocket, boost::asio::buffer(&crypto_params_size, sizeof(crypto_params_size)));
 
     write(sessionSocket, boost::asio::buffer(pirParam.crypto_params));
-  } 
-  catch(std::exception const& ex) 
+  }
+  catch(std::exception const& ex)
   {
     exitWithErrorMessage(__FUNCTION__, string(ex.what()));
   }
 }
 
-bool PIRSession::rcvIsClient() 
+bool PIRSession::rcvIsClient()
 {
   try{
     int is_client;
@@ -178,7 +178,7 @@ bool PIRSession::rcvIsClient()
       boost::this_thread::yield();
       //exitWithErrorMessage(__FUNCTION__, "No client or optim choice recieved");
 
-    return is_client == 1; 
+    return is_client == 1;
   }catch (std::exception const& ex)
   {
     exitWithErrorMessage(__FUNCTION__, string(ex.what()));
@@ -198,12 +198,12 @@ void PIRSession::rcvCryptoParams(bool paramsandkey)
 
   try{
     std::vector<std::string> fields;
-    
+
     if(paramsandkey == true)
-    { 
-      // First get the int and allocate space for the string (plus the null caracter) 
+    {
+      // First get the int and allocate space for the string (plus the null caracter)
       read(sessionSocket, boost::asio::buffer(&size, sizeof(int)));
-      char params_buf[size + 1];	
+      char params_buf[size + 1];
 
       // Get the string in the buffer and add a null character
       read(sessionSocket, boost::asio::buffer(params_buf, size));
@@ -219,16 +219,16 @@ void PIRSession::rcvCryptoParams(bool paramsandkey)
       boost::algorithm::split(fields, crypto_system_desc, boost::algorithm::is_any_of(":"));
 
       // Create cryptosystem using a factory and the extracted name
-      cryptoMethod = HomomorphicCryptoFactory_internal::getCrypto(fields[0]); 
-    
+      cryptoMethod = HomomorphicCryptoFactory_internal::getCrypto(fields[0]);
+
       // Set cryptosystem with received parameters and key material
       cryptoMethod->setNewParameters(params_buf);
 
-      // Create the PIR reply generator object using a factory to have 
-      // the correct object given the cryptosystem used (for optimization 
+      // Create the PIR reply generator object using a factory to have
+      // the correct object given the cryptosystem used (for optimization
       // reply generation is cryptosystem dependent)
       generator = PIRReplyGeneratorFactory::getPIRReplyGenerator(fields[0], pirParam, dbhandler);
-      if (generator == NULL) 
+      if (generator == NULL)
       {
         std::cout << "PIRSession: CRITICAL no reply generator found, exiting session" << std::endl;
         pthread_exit(this);
@@ -236,17 +236,17 @@ void PIRSession::rcvCryptoParams(bool paramsandkey)
       else
       {
         generator->setCryptoMethod(cryptoMethod);
-      } 
+      }
     }
-    
-    // Use again size to describe the key size 
+
+    // Use again size to describe the key size
     if (read(sessionSocket, boost::asio::buffer(&size ,sizeof(size))) <= 0)
       exitWithErrorMessage(__FUNCTION__,"No key received, abort.");
 
 #ifdef DEBUG
     cout << "PIRSession: Size of received key material is " << size << endl;
 #endif
-    // Get the key material only if there is some  
+    // Get the key material only if there is some
     if(size > 0)
     {
       // This time we don't use a string so no need for an extra character
@@ -254,7 +254,7 @@ void PIRSession::rcvCryptoParams(bool paramsandkey)
 
       if (read(sessionSocket, boost::asio::buffer(buf, size)) < size)
         exitWithErrorMessage(__FUNCTION__,"No parameters received, abort.");
-    
+
       cryptoMethod->getPublicParameters().setModulus(buf);
     }
 
@@ -288,21 +288,21 @@ void PIRSession::sendPIRParamsExchangeMethod(short exchange_method)
 /**
  * Receive client's PIR parameters.
  **/
-void PIRSession::rcvPirParams() 
+void PIRSession::rcvPirParams()
 {
   try{
     // First we get an int with the recursion level
-    if ( read(sessionSocket, boost::asio::buffer(&(pirParam.d), sizeof(int))) <= 0) 
+    if ( read(sessionSocket, boost::asio::buffer(&(pirParam.d), sizeof(int))) <= 0)
       exitWithErrorMessage(__FUNCTION__, "No pir param recieved");
 
     // Then we get an int with the aggregation
-    if ( read(sessionSocket, boost::asio::buffer(&(pirParam.alpha), sizeof(int))) <= 0) 
+    if ( read(sessionSocket, boost::asio::buffer(&(pirParam.alpha), sizeof(int))) <= 0)
       exitWithErrorMessage(__FUNCTION__, "No pir param recieved");
 
     // Finally for each level we get an int withe the corresponding dimension size
     for (unsigned int i = 0 ; i < pirParam.d ; i++)
     {
-      if ( read(sessionSocket, boost::asio::buffer(	&(pirParam.n[i]), sizeof(int))) <= 0) 
+      if ( read(sessionSocket, boost::asio::buffer(	&(pirParam.n[i]), sizeof(int))) <= 0)
         exitWithErrorMessage(__FUNCTION__, "No pir param recieved");
     }
     // The last dimension + 1 is set to 1 (used in some functions to compute the number of
@@ -326,7 +326,7 @@ void PIRSession::rcvPirParams()
   }
 }
 
-void PIRSession::sendPirParams() 
+void PIRSession::sendPirParams()
 {
   cout << "PIRSession: Mandatory PIR params sent to the client are d=" << pirParam.d << ", alpha=" << pirParam.alpha << ", data_layout=";
   for (unsigned int i = 0; i < pirParam.d; i++)
@@ -338,17 +338,17 @@ void PIRSession::sendPirParams()
   cout << endl;
   try{
     // First we send an int with the recursion level
-    if ( write(sessionSocket, boost::asio::buffer(&(pirParam.d), sizeof(int))) <= 0) 
+    if ( write(sessionSocket, boost::asio::buffer(&(pirParam.d), sizeof(int))) <= 0)
       exitWithErrorMessage(__FUNCTION__, "No pir param sended");
 
-    // Then we send an int with the aggregation 
-    if ( write(sessionSocket, boost::asio::buffer(&(pirParam.alpha), sizeof(int))) <= 0) 
+    // Then we send an int with the aggregation
+    if ( write(sessionSocket, boost::asio::buffer(&(pirParam.alpha), sizeof(int))) <= 0)
       exitWithErrorMessage(__FUNCTION__, "No pir param sended");
 
     // Finally for each level we send an int withe the corresponding dimension size
     for (unsigned int i = 0 ; i < pirParam.d ; i++)
     {
-      if ( write(sessionSocket, boost::asio::buffer(	&(pirParam.n[i]), sizeof(int))) <= 0) 
+      if ( write(sessionSocket, boost::asio::buffer(	&(pirParam.n[i]), sizeof(int))) <= 0)
         exitWithErrorMessage(__FUNCTION__, "No pir param sended");
     }
     // The last dimension + 1 is set to 1 (used in some functions to compute the number of
@@ -382,15 +382,12 @@ void PIRSession::startProcessQuery ()
 /**
  * Recieve queries n messages with n = nbr of files.
  **/
-void blo(const boost::system::error_code& err) {
-  std::cout <<"rec "<<omp_get_wtime()<<std::endl;
-}
 void PIRSession::downloadWorker()
 {
   double start = omp_get_wtime();
   unsigned int msg_size = 0;
 
-  // Allocate an array with d dimensions with pointers to arrays of n[i] lwe_query elements 
+  // Allocate an array with d dimensions with pointers to arrays of n[i] lwe_query elements
   generator->initQueriesBuffer();
 
 #ifdef PERF_TIMERS
@@ -404,11 +401,11 @@ void PIRSession::downloadWorker()
   try{
     for (unsigned int j = 0 ; j < pirParam.d ; j++)
     {
-      // Compute and allocate the size in bytes of a query ELEMENT of dimension j 
+      // Compute and allocate the size in bytes of a query ELEMENT of dimension j
       msg_size = cryptoMethod->getPublicParameters().getQuerySizeFromRecLvl(j+1) / 8;
       boost::asio::socket_base::receive_buffer_size opt(65535);
       sessionSocket.set_option(opt);
-  //    boost_buffer = new boost::asio::buffer(buf, msg_size); 
+  //    boost_buffer = new boost::asio::buffer(buf, msg_size);
 #ifdef DEBUG
       cout << "PIRSession: Size of the query element to be received is " << msg_size << endl;
       cout << "PIRSession: Number of query elements to be received is " << pirParam.n[j] << endl;
@@ -418,21 +415,21 @@ void PIRSession::downloadWorker()
       for (unsigned int i = 0; i < pirParam.n[j]; i++)
       {
       char *buf = (char *) malloc(msg_size*sizeof(char));
-      auto boost_buffer = boost::asio::buffer(buf,msg_size); 
+      auto boost_buffer = boost::asio::buffer(buf,msg_size);
       if (i==0 && j == 0) cout << "PIRSession: Waiting for query elements ..." << endl;
-        // Get a query element 
+        // Get a query element
          //( async_read(sessionSocket, boost_buffer,boost::bind(&blo,boost::asio::placeholders::error)) );
         if (read(sessionSocket, boost_buffer) < msg_size )
-          writeWarningMessage(__FUNCTION__, "Query element not entirely recieved");	
+          writeWarningMessage(__FUNCTION__, "Query element not entirely recieved");
 //  std::cout <<"PIRSession: " << total_elts << " query elements received in " << omp_get_wtime() - start << std::endl;
 
-        // Allocate the memory for the element, copy it, and point to it with the query buffer  
+        // Allocate the memory for the element, copy it, and point to it with the query buffer
         if (i==0 && j == 0) cout << "PIRSession: Starting query element reception"  << endl;
 
 #ifdef PERF_TIMERS
         // Give some feedback if it takes too long
         double vtstop = omp_get_wtime();
-        if (vtstop - vtstart > 1) 
+        if (vtstop - vtstart > 1)
         {
           vtstart = vtstop;
           previous_elts = 0;
@@ -441,7 +438,7 @@ void PIRSession::downloadWorker()
           wasVerbose = true;
         }
 #endif
-        
+
         generator->pushQuery(buf, msg_size, j, i);
       }
 
@@ -456,7 +453,7 @@ void PIRSession::downloadWorker()
   std::cout <<"PIRSession: Query element " << total_elts << "/" << total_elts << " received" << std::endl;
   std::cout <<"PIRSession: " << total_elts << " query elements received in " << omp_get_wtime() - start << std::endl;
 #endif
-  
+
   // All the query elements received, unlock reply generation
   generator->mutex.unlock();
 
@@ -477,23 +474,23 @@ void PIRSession::startProcessResult(session_option_t session_option)
     upThread = boost::thread(&PIRSession::uploadWorker, this);
   }
   // Import and generate reply once unlocked by the query downloader thread
-  // If we got a preimported database generate reply directly from it 
-  if (session_option.got_preimported_database == true) 
+  // If we got a preimported database generate reply directly from it
+  if (session_option.got_preimported_database == true)
   {
     std::cout << "PIRSession: Already got an imported database available, using it" << std::endl;
     generator->generateReplyGenericFromData(session_option.data);
   }
   else if (session_option.keep_database == true) {
     savedDatabase = generator->generateReplyGeneric(true);
-  } 
-  else if (session_option.keep_database == false) 
+  }
+  else if (session_option.keep_database == false)
   {
     generator->generateReplyGeneric(false);
   }
-  
+
   if (no_pipeline_mode) {
     uploadWorker();
-  } 
+  }
 }
 
 void sleepForBytes(unsigned int bytes) {
@@ -508,11 +505,11 @@ void sleepForBytes(unsigned int bytes) {
 }
 
 /**
- * Send PIR's result, asynchronously. 
+ * Send PIR's result, asynchronously.
  **/
-void PIRSession::uploadWorker() 
+void PIRSession::uploadWorker()
 {
-  // Ciphertext byte size 
+  // Ciphertext byte size
   unsigned int byteSize = cryptoMethod->getPublicParameters().getCiphBitsizeFromRecLvl(pirParam.d)/GlobalConstant::kBitsPerByte;
   uint64_t totalbytesent=0;
   // Number of ciphertexts in the reply
@@ -531,12 +528,12 @@ void PIRSession::uploadWorker()
     // For each ciphertext in the reply
     for (unsigned i = 0 ; i < reply_nbr ; i++)
     {
-      while (generator->repliesArray == NULL || generator->repliesArray[i] == NULL) 
-      { 
+      while (generator->repliesArray == NULL || generator->repliesArray[i] == NULL)
+      {
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
       }
       ptr = generator->repliesArray[i];
-      
+
       // Send it
       //int byteSent=sessionSocket.send(boost::asio::buffer(ptr, byteSize));
       if (write(sessionSocket,boost::asio::buffer(ptr, byteSize)) <= 0)
@@ -569,30 +566,23 @@ void PIRSession::uploadWorker()
 }
 
 
-// Functions for displaying logs 
+// Functions for displaying logs
 void PIRSession::writeErrorMessage(string funcName, string message)
 {
   cerr << BOLD  << funcName << " : " << RESET_COLOR << RED << message << RESET_COLOR <<endl;
 }
-void PIRSession::writeWarningMessage(string funcName, string message) 
+void PIRSession::writeWarningMessage(string funcName, string message)
 {
   cerr << BOLD  << funcName << " : " << RESET_COLOR << ORANGE << message << RESET_COLOR <<endl;
 }
 
 // For critical erros
-void PIRSession::exitWithErrorMessage(string funcName, string message) 
+void PIRSession::exitWithErrorMessage(string funcName, string message)
 {
   writeErrorMessage(funcName, message);
 
   // This is used in the main function (start()) to skip costly operations if an error occurred
-  handmadeExceptionRaised = true;	
-}
-
-
-// Used by the PIRServer for garbage collection
-bool PIRSession::isFinished()
-{
-  return finished;
+  handmadeExceptionRaised = true;
 }
 
 // Destructor

@@ -49,18 +49,11 @@ OptimVars::OptimVars(FitnessType fitness_, FixedVars fixed_vars):
 //Destructor
 OptimVars::~OptimVars() {}
 
-// Method to change the fitness method
-void OptimVars::setType(FitnessType fitness_)
-{
-  fitness = fitness_;
-}
-
-
 // Getters and setters
 double OptimVars::getGenQ() { return costs[GENQ]; }
 void OptimVars::setGenQ(double GenQ) { costs[GENQ] = GenQ; }
 
-double OptimVars::getSendQ() { return costs[SENDQ]; } 
+double OptimVars::getSendQ() { return costs[SENDQ]; }
 void OptimVars::setSendQ(double SendQ) { costs[SENDQ] = SendQ; }
 
 double OptimVars::getGenR() { return costs[GENR]; }
@@ -76,7 +69,7 @@ unsigned int OptimVars::getAlpha() { return alpha; }
 void OptimVars::setAlpha(unsigned int alpha_) { alpha = alpha_; }
 
 unsigned int OptimVars::getDim() { return d; }
-void OptimVars::setDim(unsigned int d_) { d = d_; } 
+void OptimVars::setDim(unsigned int d_) { d = d_; }
 
 FixedVars OptimVars::getFixedVars() { return fixedVars; }
 void OptimVars::setFixedVars(FixedVars fixed_vars) { fixedVars = fixed_vars; }
@@ -112,15 +105,15 @@ double OptimVars::operator[](unsigned int i)
 	assert(i < COST_NBR);
 	return costs[i];
 }
-bool OptimVars::operator==(OptimVars &other) 
+bool OptimVars::operator==(OptimVars &other)
 {
 	return (getValue() ==  other.getValue()) ? true : false;
 }
-bool OptimVars::operator<(OptimVars &other) 
+bool OptimVars::operator<(OptimVars &other)
 {
 	return (getValue() < other.getValue()) ? true : false;
 }
-bool OptimVars::operator>(OptimVars &other) 
+bool OptimVars::operator>(OptimVars &other)
 {
 	return (getValue() > other.getValue()) ? true : false;
 }

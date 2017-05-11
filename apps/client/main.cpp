@@ -31,7 +31,7 @@ static const unsigned int DEFAULT_TDOC = 100000000;
 static const unsigned int DEFAULT_K = 80;
 static const unsigned int DEFAULT_ALPHAMAX = 0; // 0 means no limit
 static const unsigned int DEFAULT_DMAX = 4;
-static const unsigned int DEFAULT_DMIN = 1; 
+static const unsigned int DEFAULT_DMIN = 1;
 static const FitnessType DEFAULT_FITNESSMETHOD = MAX;
 static const std::string DEFAULT_CRYPTO_PARAMS("LWE:80:1024:60:22");
 
@@ -40,90 +40,80 @@ static const std::string DEFAULT_CRYPTO_PARAMS("LWE:80:1024:60:22");
 string fileToOptimizeFrom;
 bool no_pipeline = false;
 
-void sighandler(int sig_num)
-{
-  FixedVars fixedVars;
-  cerr.flush();
-  if(sig_num == SIGPIPE)
-    cerr << "Broken pipe detected";
-
-  cerr << endl << "Exiting client..." << endl << endl;
-  exit(EXIT_SUCCESS);       
-}
 
 
 void defineClientOptions(ClientParams* paramsPtr, po::options_description* odptr){
   odptr->add_options()
-    ("help,h", 
-     "help message") 
-    
-    ("serverip,ip", 
-     po::value<string>(&paramsPtr->server_ip)->default_value(DEFAULT_IP), 
+    ("help,h",
+     "help message")
+
+    ("serverip,ip",
+     po::value<string>(&paramsPtr->server_ip)->default_value(DEFAULT_IP),
      "PIR server IP" )
 
-    ("port,p", 
-     po::value<int>(&paramsPtr->port)->default_value(DEFAULT_PORT), 
+    ("port,p",
+     po::value<int>(&paramsPtr->port)->default_value(DEFAULT_PORT),
      "PIR server port")
-    
-    ("autochoice,c", 
+
+    ("autochoice,c",
      "Auto-choose the first file")
-    
-    ("dry-run", 
+
+    ("dry-run",
      "Enable dry-run mode")
-    
-    ("verbose-optim", 
+
+    ("verbose-optim",
      "Ask the optimizer to be more verbose")
-    
-    ("dont-write", 
+
+    ("dont-write",
      "Don't write result to a file")
-    
-    ("file,f", 
-     po::value<std::string>(&fileToOptimizeFrom), 
-     "Use a config file to test different optimizations in dry-run mode (see sample.conf)"); 
+
+    ("file,f",
+     po::value<std::string>(&fileToOptimizeFrom),
+     "Use a config file to test different optimizations in dry-run mode (see sample.conf)");
 }
 
 
 void defineOptimizerOptions(FixedVars* varsPtr, po::options_description* odptr){
   odptr->add_options()
-    ("file-nbr,n", 
-     po::value<uint64_t>(), 
+    ("file-nbr,n",
+     po::value<uint64_t>(),
      "Used in dry-run mode only: Number of database elements" )
 
-    ("file-size,l", 
-     po::value<uint64_t>(), 
+    ("file-size,l",
+     po::value<uint64_t>(),
      "Used in dry-run mode only: Database element size in bits")
-    
-    ("upload,up", 
-     po::value<double>(),  
+
+    ("upload,up",
+     po::value<double>(),
      "Force client upload speed in bits/s (bandwith test will be skipped)")
-    
-    ("download,down", 
-     po::value<double>(), 
+
+    ("download,down",
+     po::value<double>(),
      "Force client download speed in bits/s (bandwidth test will be skipped)")
-    
-    ("crypto-params,r", 
-     po::value<string>(&varsPtr->manual_crypto_params), 
+
+    ("crypto-params,r",
+     po::value<string>(&varsPtr->manual_crypto_params),
      "Set cryptographic parameteres manually")
-    
-    ("security,k", 
-     po::value<unsigned int>(&varsPtr->k)->default_value(DEFAULT_SECURITY), 
+
+    ("security,k",
+     po::value<unsigned int>(&varsPtr->k)->default_value(DEFAULT_SECURITY),
      "Security bits wanted")
-    
-    ("dmin", 
-     po::value<unsigned int>(&varsPtr->dMin)->default_value(DEFAULT_DMIN), 
+
+    ("dmin",
+     po::value<unsigned int>(&varsPtr->dMin)->default_value(DEFAULT_DMIN),
      "Min dimension value to test")
-    
-    ("dmax", 
-     po::value<unsigned int>(&varsPtr->dMax)->default_value(DEFAULT_DMAX), 
+
+    ("dmax",
+     po::value<unsigned int>(&varsPtr->dMax)->default_value(DEFAULT_DMAX),
      "Max dimension value to test")
-    
-    ("alphaMax,a", 
-     po::value<unsigned int>(&varsPtr->alphaMax)->default_value(DEFAULT_ALPHAMAX), 
+
+    ("alphaMax,a",
+     po::value<unsigned int>(&varsPtr->alphaMax)->default_value(DEFAULT_ALPHAMAX),
      "Max aggregation value to test (1 = no aggregation, 0 = no limit)")
-    
+
     ("fitness,x",
      po::value<int>((int*)&varsPtr->fitness)->default_value((int)DEFAULT_FITNESSMETHOD),
-     "Set fitness method to: \n0=SUM Sum of the times on each task\n1=MAX Max of server times + Max of client times\n2=CLOUD Dollars in a cloud model (see sourcecode)");    
+     "Set fitness method to: \n0=SUM Sum of the times on each task\n1=MAX Max of server times + Max of client times\n2=CLOUD Dollars in a cloud model (see sourcecode)");
 }
 
 
@@ -131,32 +121,32 @@ void defineHiddenOptions(FixedVars* varsPtr, po::options_description* odptr){
   odptr->add_options()
     ("no-pipeline", "No pipeline mode\n")
 
-    ("reclvl", 
-     po::value<unsigned int>(), 
-     "Number of dimension used for database representation"); 
+    ("reclvl",
+     po::value<unsigned int>(),
+     "Number of dimension used for database representation");
 }
 
 
 void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_map vm){
 
   // Client options
-  if(vm.count("serverip")) 
+  if(vm.count("serverip"))
   {
     std::cout << "CLI: Server ip set to " <<  paramsPtr->server_ip << std::endl;
   }
-  
-  if(vm.count("port")) 
+
+  if(vm.count("port"))
   {
     std::cout << "CLI: Upload port set to " << paramsPtr->port << std::endl;
   }
-  
-  if(vm.count("autochoice")) 
+
+  if(vm.count("autochoice"))
   {
     std::cout << "CLI: Auto-choice activated" << std::endl;
     paramsPtr->autochoice = true;
   }
-  
-  if(vm.count("dry-run")) 
+
+  if(vm.count("dry-run"))
   {
     std::cout << "CLI: Dry-run mode activated" << std::endl;
     paramsPtr->dryrunmode = true;
@@ -169,14 +159,14 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
     std::cout << "CLI: Setting default values for dry-run mode (a thousand mp3 files, 100MBit/s connection)" <<std::endl;
   }
 
-  if(vm.count("verbose-optim")) 
+  if(vm.count("verbose-optim"))
   {
     std::cout << "CLI: Will ask the optimizer to be more verbose" << std::endl;
     paramsPtr->verboseoptim = true;
   }
 
 
-  if(vm.count("dont-write")) 
+  if(vm.count("dont-write"))
   {
     std::cout << "CLI: Will ask PIRReplyWriter not to write to a file" << std::endl;
     paramsPtr->dontwrite = true;
@@ -184,18 +174,18 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
   else paramsPtr->dontwrite = false;
 
   // Optimizer options
-  if(vm.count("file-nbr")) 
+  if(vm.count("file-nbr"))
   {
     if(vm.count("dry-run"))
     {
       varsPtr->n = vm["file-nbr"].as<uint64_t>();
       std::cout << "CLI: Changing number of database elements to "\
         << varsPtr->n << std::endl;
-    } 
-    else 
+    }
+    else
     {
       std::cout << "CLI: Option -n,--file-nbr ignored as we are not in dry-run mode"\
-        << std::endl; 
+        << std::endl;
     }
   }
 
@@ -208,7 +198,7 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
     else
     {
       std::cout << "CLI: Option -l,--file-size ignored as we are not in dry-run mode"
-        << std::endl; 
+        << std::endl;
     }
   }
 
@@ -218,15 +208,15 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
     varsPtr->Tdos = varsPtr->Tupc;
     cout << "CLI: Upload speed forced to "<< varsPtr->Tupc << endl;
   }
-  
+
   if (vm.count("download"))
   {
     varsPtr->Tdoc = vm["download"].as<double>();
     varsPtr->Tups = varsPtr->Tdoc;
     cout << "CLI: Download speed forced to "<< varsPtr->Tdoc << endl;
   }
-  
-  if(vm.count("crypto-params")) 
+
+  if(vm.count("crypto-params"))
   {
     std::cout << "CLI: Crypto parameters set to " << varsPtr->manual_crypto_params <<  std::endl;
     std::vector<std::string> fields;
@@ -236,47 +226,47 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
       varsPtr->k = atoi(fields[1].c_str());
     }
     if (fields.size()>4)
-    { 
+    {
       std::cout << "CLI: WARNING Absorption size will be overriden by the optimizer" << varsPtr->manual_crypto_params <<  std::endl;
-      
+
       varsPtr->k = 0;
-    } 
+    }
   }
 
-  if(vm.count("security")) 
+  if(vm.count("security"))
   {
     std::cout << "CLI: Security set to " << varsPtr->k <<  std::endl;
   }
 
-  if (vm.count("dmin")) 
+  if (vm.count("dmin"))
   {
     cout << "CLI: Minimum recursion level set to "<< varsPtr->dMin << endl;
   }
-  
-  if (vm.count("dmax")) 
+
+  if (vm.count("dmax"))
   {
     cout << "CLI: Maximum recursion level set to "<< varsPtr->dMax << endl;
   }
-  
-  if(vm.count("alphaMax")) 
+
+  if(vm.count("alphaMax"))
   {
     varsPtr->alphaMax = vm["alphaMax"].as<unsigned int>();
     cout << "CLI: Max aggregation set to "<< varsPtr->alphaMax << endl;
   }
-  
-  if(vm.count("fitness")) 
+
+  if(vm.count("fitness"))
   {
     cout << "CLI: Fitness method set to "<< varsPtr->fitness << endl;
-  }   
-  
+  }
+
   // Hidden options
-  if (vm.count("reclvl")) 
+  if (vm.count("reclvl"))
   {
-    varsPtr->dMax = vm["reclvl"].as<unsigned int>(); 
-    varsPtr->dMin = vm["reclvl"].as<unsigned int>(); 
+    varsPtr->dMax = vm["reclvl"].as<unsigned int>();
+    varsPtr->dMin = vm["reclvl"].as<unsigned int>();
     cout << "CLI: Recursion level forced to "<< varsPtr->dMax << endl;
   }
-  
+
   if (vm.count("no-pipeline"))
   {
     std::cout << "CLI: WARNING no pipeline mode activated" << std::endl;
@@ -286,13 +276,13 @@ void processOptions(FixedVars* varsPtr, ClientParams* paramsPtr, po::variables_m
 
 
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
   boost::asio::io_service ios;
-  
+
   // Vars for the optimizer (and pot. client)
   FixedVars fixedVars = {}; // Inits to default value all fields
-  
+
   // Vars for the client only
   ClientParams clientParams = {}; // Same here
 
@@ -315,7 +305,7 @@ int main(int argc, char** argv)
   try {
     po::store(po::parse_command_line(argc, argv, all), vm);
   }
-  catch (const std::exception& ex) 
+  catch (const std::exception& ex)
   {
     std::cout << "CLI: Error checking program options: " << ex.what() << std::endl;
     std::cout << visible << std::endl;
@@ -331,17 +321,17 @@ int main(int argc, char** argv)
 
   // Set variables according to options
   processOptions(&fixedVars, &clientParams, vm);
- 
-  
+
+
   // If we are on dry-run mode run only the optimizer not the client
   if(vm.count("dry-run"))
   {
     std::cout << "CLI: Dry-run mode activated" << std::endl;
 
-    // The optimizer connects to the same PIR server but on a higher port for 
+    // The optimizer connects to the same PIR server but on a higher port for
     // optimization related exchanges
     PIROptimizer optimizer(clientParams.server_ip, clientParams.port, fixedVars.fitness);
-    
+
     if (vm.count("file"))
     {
       int experience_nbr = OptimService::getNumberOfExperiences(fileToOptimizeFrom);
@@ -373,7 +363,7 @@ int main(int argc, char** argv)
   // If we are not in dry-run mode create client and controller
   PIRClientSimple client(ios, clientParams, fixedVars);
   PIRController controller(client);
- 
+
   // Set no_pipeline if needed
   if(no_pipeline) client.no_pipeline(true);
 
@@ -386,9 +376,9 @@ int main(int argc, char** argv)
   // Get from the server whether we are in client-driven mode or not
   client.rcvPIRParamsExchangeMethod();
 
-  // Use the optimizer to choose best parameters 
+  // Use the optimizer to choose best parameters
   // (returns immediately in server-driven mode)
-  client.optimize();  
+  client.optimize();
 
   // Send PIR and cryptographic parameters to the server in client-driven mode
   // and receive and process them in server-driven mode
@@ -397,10 +387,10 @@ int main(int argc, char** argv)
 
   /*User chooses the file here.*/
   client.chooseFile();
-  
+
   double start = omp_get_wtime();
-  
-  
+
+
   /* Asynchronously generate and send the request
      separately in two threads*/
   client.startProcessQuery();

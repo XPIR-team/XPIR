@@ -64,10 +64,10 @@ void NFLLWEPublicParameters::setnoiseUB(uint64_t noise_upper_bound) { noise_ub =
 void NFLLWEPublicParameters::setAbsPCBitsize(int bitSize_)
 {
 	absPerCoordinateBitsize = bitSize_;
-	
+
 }
-void NFLLWEPublicParameters::setsecurityBits(uint64_t security_bits_) 
-{ 
+void NFLLWEPublicParameters::setsecurityBits(uint64_t security_bits_)
+{
 		crypto_container->setsecurityBits(security_bits_);
 }
 void NFLLWEPublicParameters::setmodulus(uint64_t modulus_)
@@ -96,8 +96,8 @@ unsigned int NFLLWEPublicParameters::getSerializedModulusBitsize()
 // k:polyDegree:modululusBitsize:AbsorptionBitsize
 void NFLLWEPublicParameters::setNewParameters(std::string crypto_param_descriptor)
 {
-  // We want to get rid of public parameter objects so we transfer the most 
-  // we can to the crypto object 
+  // We want to get rid of public parameter objects so we transfer the most
+  // we can to the crypto object
   crypto_container->setNewParameters(crypto_param_descriptor);
 }
 
@@ -106,7 +106,7 @@ void NFLLWEPublicParameters::setNewParameters(std::string crypto_param_descripto
 std::string NFLLWEPublicParameters::getSerializedParams(bool shortversion)
 {
   std::string params;
-  
+
   // Name:security:degree:modulusbitsize
   // WARNING send modulus representation
   params = cryptoName + ":" + std::to_string(getsecurityBits()) + ":" + std::to_string(getpolyDegree()) + ":" + std::to_string(getmodulusBitsize());
@@ -124,14 +124,9 @@ std::string NFLLWEPublicParameters::getSerializedParams(bool shortversion)
 
 char* NFLLWEPublicParameters::getByteModulus()
 {
- char* byte_pub_key  = new char[getpolyDegree() * sizeof(uint64_t)](); 
+ char* byte_pub_key  = new char[getpolyDegree() * sizeof(uint64_t)]();
  memcpy(byte_pub_key, &P64, getpolyDegree() * sizeof(uint64_t));
 	return byte_pub_key;
-}
-
-
-void NFLLWEPublicParameters::getParameters()
-{
 }
 
 
@@ -143,11 +138,6 @@ unsigned int NFLLWEPublicParameters::getAbsorptionBitsize()
 unsigned int NFLLWEPublicParameters::getAbsorptionBitsize(unsigned int i)
 {
 	return (absPerCoordinateBitsize < 0) ? 0 : getpolyDegree() * absPerCoordinateBitsize;
-}
-
-unsigned int NFLLWEPublicParameters::getCiphertextSize()
-{
-  return getpolyDegree() * 64 * 2 *crypto_container->getnbModuli();
 }
 
 unsigned int NFLLWEPublicParameters::getCiphertextBitsize()

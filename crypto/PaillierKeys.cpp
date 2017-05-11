@@ -40,14 +40,14 @@ void paillier_prvkey::clear_key()
 
 /*************** PUBKEY**************/
 paillier_pubkey::paillier_pubkey() :
-  bits(0), 
+  bits(0),
   init_s(1)
 {
   init_key();
 }
 
 paillier_pubkey::paillier_pubkey(unsigned int bits, char* rawKey) :
-  bits(0), 
+  bits(0),
   init_s(1)
 {
   init_key(bits, rawKey);
@@ -66,17 +66,17 @@ void paillier_pubkey::init_key(unsigned int _bits, char* rawKey) {
   bits = _bits;
 
   init_key();
-  
+
   mpz_import(nj[1], _bits / 8, 1, sizeof(char), 0, 0, rawKey);
   mpz_add_ui(g, nj[1], 1);
   memcpy(&init_s_, rawKey+_bits/8, sizeof(int));
-  
+
   // The client should not be using s above MAX_S
   if (init_s_ >= MAX_S)
   {
     std::cout << "PaillierKeys: WARNING. The client tries to use s>=MAX_S. Setting s=MAX_S-1."<<std::endl;
     init_s = MAX_S-1;
-  } 
+  }
   else init_s = init_s_;
 
   for (int i = 2; i <= init_s+1; i++)
@@ -92,9 +92,9 @@ void paillier_pubkey::init_key(unsigned int key_bit_size)
   gmp_randstate_t rand;
   gmp_randinit_default(rand);
 
-  mpz_urandomb(nj[1], rand, key_bit_size); 
+  mpz_urandomb(nj[1], rand, key_bit_size);
   mpz_add_ui(g, nj[1], 1);
-  
+
   for (int i = 2; i <= init_s+1; i++)
 	{
 		mpz_pow_ui(nj[i], nj[1], i);
@@ -129,10 +129,10 @@ void paillier_pubkey::complete_key(unsigned int s_){
 
   // If g's value has not been initialized do it now
   if (mpz_get_ui(g) == 1 ) mpz_add_ui(g, nj[1], 1);
-  
+
   // Initialize the array's values
   for (unsigned int i = 2; i <= s ; i++){
-    // Should we save polar bears ? if (mpz_get_ui(nj[i]) == 1 ) 
+    // Should we save polar bears ? if (mpz_get_ui(nj[i]) == 1 )
     init_nj(i);
   }
 }
@@ -154,7 +154,7 @@ mpz_t* paillier_pubkey::getnj(int s_)
 
   // If the key has been defined do it now
   if (mpz_get_ui(nj[s]) == 1 ) init_nj(s);
-  
+
   return &nj[s];
 }
 
@@ -169,11 +169,6 @@ mpz_t* paillier_pubkey::getg()
   return &g;
 }
 
-int paillier_pubkey::getbits()
-{
-  return bits;
-} 
-
 // Simple setters
 void paillier_pubkey::setinit_s(int init_s_)
 {
@@ -183,5 +178,5 @@ void paillier_pubkey::setinit_s(int init_s_)
 void paillier_pubkey::setbits(int bits_)
 {
   bits = bits_;
-} 
+}
 

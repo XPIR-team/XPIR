@@ -17,7 +17,7 @@
 
 #include "NFLlib.hpp"
 #include <x86intrin.h>
-	
+
 void DEBUG_MESSAGE(const char *s, poly64 p, unsigned int n){
 #ifdef DEBUG
   std::cout<<s;
@@ -56,18 +56,18 @@ void  NFLlib::configureNTT()
   omegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));
   shoupomegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));
   invomegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));
-  shoupinvomegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));  
+  shoupinvomegas = (uint64_t **) malloc(nbModuli * sizeof(uint64_t *));
   invpolyDegree = (uint64_t *) malloc(nbModuli * sizeof(uint64_t));
   liftingIntegers = new mpz_t[nbModuli];
   moduli=new uint64_t[nbModuli]();
 
   // From now on, we have to do everything nbModuli times
-  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) 
+  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++)
   {
 
     // Define the moduli we use (useful ?)
     moduli[currentModulus] = P64[currentModulus];
- 
+
     // Allocation of the second dimension of the NTT parameters
     phis[currentModulus] = (uint64_t *) malloc(polyDegree * sizeof(uint64_t));
     shoupphis[currentModulus] = (uint64_t *) malloc(polyDegree * sizeof(uint64_t));
@@ -77,19 +77,19 @@ void  NFLlib::configureNTT()
     shoupomegas[currentModulus] = omegas[currentModulus] + polyDegree;
     invomegas[currentModulus] = (uint64_t *) malloc((2 * polyDegree) * sizeof(uint64_t));
     shoupinvomegas[currentModulus] = invomegas[currentModulus] + polyDegree;
-    
-    // We start by computing phi 
-    // The roots in the array are primitve 2**14-th roots 
+
+    // We start by computing phi
+    // The roots in the array are primitve 2**14-th roots
     // Squared 14-log2(polyDegree) times they become
     // polyDegree-th roots as required by the NTT
-    // But first we get phi = sqrt(omega) squaring them 13-log2(polyDegree) times 
+    // But first we get phi = sqrt(omega) squaring them 13-log2(polyDegree) times
     phi = primitive_roots[currentModulus];
     for (unsigned int i = 0 ; i < 13 - log2(polyDegree) ; i++)
     {
       phi = mulmod(phi, phi, moduli[currentModulus]);
     }
-    
-    // Now that temp = phi we initialize the array of phi**i values  
+
+    // Now that temp = phi we initialize the array of phi**i values
     // Initialized to phi**0
     temp = 1;
     for (unsigned int i = 0 ; i < polyDegree ; i++)
@@ -103,10 +103,10 @@ void  NFLlib::configureNTT()
 
     // Computation of invphi
     // phi**(2*polydegree)=1 -> temp*phi**(polyDegree-1) = phi**(-1)
-    invphi = mulmod(temp, phis[currentModulus][polyDegree-1], moduli[currentModulus]); 
+    invphi = mulmod(temp, phis[currentModulus][polyDegree-1], moduli[currentModulus]);
 
     // Computation of the inverse of polyDegree using the inverse of kMaxPolyDegree
-    invpolyDegree[currentModulus] = mulmod(invkMaxPolyDegree[currentModulus], 
+    invpolyDegree[currentModulus] = mulmod(invkMaxPolyDegree[currentModulus],
         kMaxPolyDegree/polyDegree, moduli[currentModulus]);
 
     // Now we can compute the table invpoly_times_invphis
@@ -114,7 +114,7 @@ void  NFLlib::configureNTT()
     for (unsigned int i = 0 ; i < polyDegree ; i++)
     {
       invpoly_times_invphis[currentModulus][i] = temp;
-      shoupinvpoly_times_invphis[currentModulus][i] = ((uint128_t) temp << 64) 
+      shoupinvpoly_times_invphis[currentModulus][i] = ((uint128_t) temp << 64)
         / moduli[currentModulus];
       // This is invpolyDegree*invphi**(i+1)
       temp = mulmod(temp, invphi, moduli[currentModulus]);
@@ -140,10 +140,10 @@ void  NFLlib::configureNTT()
     for (unsigned int i = 0 ; i < nbModuli ; i++)
     {
       if (i == currentModulus) continue;
-      mpz_import(tmpz, 1, 1, sizeof(uint64_t), 0, 0, &P64[i]); 
+      mpz_import(tmpz, 1, 1, sizeof(uint64_t), 0, 0, &P64[i]);
       mpz_mul(liftingIntegers[currentModulus], liftingIntegers[currentModulus], tmpz);
     }
-    
+
     // Compute the inverse of the product modulo the current modulus and multiply it with the product
     mpz_import(tmpz, 1, 1, sizeof(uint64_t), 0, 0, &moduli[currentModulus]);
     mpz_invert(mpz_inverse, liftingIntegers[currentModulus], tmpz);
@@ -151,8 +151,8 @@ void  NFLlib::configureNTT()
     mpz_clear(tmpz);
     mpz_clear(mpz_inverse);
   }
-  
-  // Compute  the product of all moduli 
+
+  // Compute  the product of all moduli
   mpz_t tmpz;
   mpz_init(tmpz);
   mpz_init_set_ui(moduliProduct,1UL);
@@ -162,34 +162,34 @@ void  NFLlib::configureNTT()
     mpz_mul(moduliProduct, moduliProduct, tmpz);
   }
   mpz_clear(tmpz);
-  
+
   uint64_t* inv_indexes_tmp = malloc_align<32, uint64_t>(polyDegree);
   inv_indexes = malloc_align<16>(polyDegree, inv_indexes);
 
   // Compute permutation indexes for inv_ntt
-  for (size_t i = 0; i < polyDegree; i++) 
+  for (size_t i = 0; i < polyDegree; i++)
   {
-    size_t ii = i, r = 0; 
+    size_t ii = i, r = 0;
     for (unsigned h = 1; h < polyDegree; h=h<<1)
-    {    
+    {
       r = (r << 1) | (ii & 1);
       ii >>= 1;
-    }    
+    }
 
-    inv_indexes_tmp[i] = r; 
+    inv_indexes_tmp[i] = r;
   }
 
   // Invert the previous permutation. I think we can do better than that :)
   for (size_t i = 0; i < polyDegree; i++) {
       for (size_t j = 0; j < polyDegree; j++) {
-          if (inv_indexes_tmp[j] == i) { 
-              inv_indexes[i] = j; 
+          if (inv_indexes_tmp[j] == i) {
+              inv_indexes[i] = j;
               break;
-          }    
-      }    
+          }
+      }
   }
   free(inv_indexes_tmp);
-  
+
   alreadyInit = nbModuli;
 }
 
@@ -206,7 +206,7 @@ void NFLlib::setNewParameters(unsigned int polyDegree_, unsigned int aggregatedM
   // We don't use setpolyDegree to avoid configureNTT being called twice
   polyDegree = polyDegree_;
 
-  // We use a special function for setting the modulus as it can be called independently 
+  // We use a special function for setting the modulus as it can be called independently
   // and requires some processing. This function also ensures that the NTT params are configured.
   setmodulus(aggregatedModulusBitsize_);
 }
@@ -218,12 +218,12 @@ void NFLlib::setmodulus(uint64_t aggregatedModulusBitsize_)
   // For the CRT, from the aggregated modulus bitsize, we compute the number of necessary moduli
   if (aggregatedModulusBitsize_ % kModulusBitsize != 0)
   {
-    std::cout << "NFLlib: CRITICAL. Modulus of " << aggregatedModulusBitsize_ 
+    std::cout << "NFLlib: CRITICAL. Modulus of " << aggregatedModulusBitsize_
       << " requested but only integer multiples of " << kModulusBitsize << " bits implemented. Exiting ..." << std::endl;
     exit(-1);
   }
   nbModuli=aggregatedModulusBitsize_/kModulusBitsize;
-  
+
   configureNTT();
 }
 
@@ -256,11 +256,11 @@ void NFLlib::copymoduliProduct(mpz_t dest) { mpz_init_set(dest, moduliProduct); 
 // **************************************
 
 // Two modes uniform or bounded (if uniform is false)
-// WARNING : The bounded mode only works for a bound 
+// WARNING : The bounded mode only works for a bound
 // below the smaller of the moduli -> we use or for bounded noise
 
 // Allocates and sets a bounded random polynomial in FFT form calling setBoundedRandomPoly
-poly64 NFLlib::allocBoundedRandomPoly(uint64_t upperBound_, bool uniform_) 
+poly64 NFLlib::allocBoundedRandomPoly(uint64_t upperBound_, bool uniform_)
 {
   poly64 res = (poly64)calloc(polyDegree * nbModuli, sizeof(uint64_t));
   setBoundedRandomPoly(res, upperBound_, uniform_);
@@ -271,7 +271,7 @@ poly64 NFLlib::allocBoundedRandomPoly(uint64_t upperBound_, bool uniform_)
 // Sets a pre-allocated random polynomial in FFT form
 // If uniform = true upperBound is ignored and the coefficients are uniformly random
 // ASSUMPTION: if uniform = false upperBound is below all of the moduli used
-void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform_) 
+void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform_)
 {
   poly64 rnd, rnd_orig;
   uint64_t mask;
@@ -280,7 +280,7 @@ void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform
     // In bounded mode upperBound must be below the smaller of the moduli
     for (unsigned int cm = 0 ; cm < nbModuli ; cm++)
     {
-      if (upperBound_ >= moduli[cm]) 
+      if (upperBound_ >= moduli[cm])
       {
         std::cout << "NFLlib: upperBound is larger than the moduli in setBoundedRandomPoly.";
         std::cout << " Unpredictable results ..." << std::endl;
@@ -290,25 +290,25 @@ void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform
 
     // We play with the rnd pointer (in the uniform case), and thus
     // we need to remember the allocated pointer to free it at the end
-    rnd_orig = (poly64) malloc(polyDegree * sizeof(uint64_t)); 
-    rnd = rnd_orig; 
+    rnd_orig = (poly64) malloc(polyDegree * sizeof(uint64_t));
+    rnd = rnd_orig;
 
     // Get some randomness from the PRNG
     fastrandombytes((unsigned char *)rnd, polyDegree * sizeof(uint64_t));
 
     // upperBound is below the moduli so we create the same mask for all the moduli
-    mask=(1ULL <<  (unsigned int)ceil(log2(upperBound_))) -1;    
-    
+    mask=(1ULL <<  (unsigned int)ceil(log2(upperBound_))) -1;
+
     for(unsigned int i=0;i<polyDegree;i++) {
-    
+
       // First remove the heavy weight bits we dont need
       rnd[i]=(rnd[i]&mask);
-    
-      // When the random is still too large, reduce it 
+
+      // When the random is still too large, reduce it
       // In order to follow strictly a uniform distribution we should
       // get another rnd but in order to follow the proofs of security
       // strictly we should also take noise from a gaussian ...
-      if (rnd[i]>=upperBound_) 
+      if (rnd[i]>=upperBound_)
       {
         rnd[i]-=upperBound_;
       }
@@ -319,14 +319,14 @@ void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform
     }
   }
   else // uniform == true
-  {  
+  {
     // In uniform mode we need randomness for all the polynomials in the CRT
-    rnd_orig = (poly64) malloc(polyDegree * nbModuli * sizeof(uint64_t)); 
+    rnd_orig = (poly64) malloc(polyDegree * nbModuli * sizeof(uint64_t));
     // We play with the rnd pointer (in the uniform case), and thus
     // we need to remember the allocated pointer to free it at the end
-    rnd = rnd_orig; 
+    rnd = rnd_orig;
     fastrandombytes((unsigned char *)rnd, polyDegree * nbModuli * sizeof(uint64_t));
-  
+
     for (unsigned int cm = 0 ; cm < nbModuli ; cm++)
     {
       // In the uniform case, instead of getting a big random (within the general moduli),
@@ -334,16 +334,16 @@ void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform
       // The mask should be the same for all moduli (because they are the same size)
       // But for generality we prefer to compute it for each moduli so that we could have
       // moduli of different bitsize
-      
-      mask=(1ULL << (int)ceil(log2(moduli[cm]))) -1;    
-    
-      for(unsigned int i=0;i<polyDegree;i++) 
+
+      mask=(1ULL << (int)ceil(log2(moduli[cm]))) -1;
+
+      for(unsigned int i=0;i<polyDegree;i++)
       {
         // First remove the heavy weight bits we dont need
         rnd[i]=(rnd[i]&mask);
-    
-        // When the random is still too large, reduce it 
-        if (rnd[i]>=moduli[cm]) 
+
+        // When the random is still too large, reduce it
+        if (rnd[i]>=moduli[cm])
         {
           rnd[i]-=moduli[cm];
         }
@@ -365,7 +365,7 @@ void NFLlib::setBoundedRandomPoly(poly64 res, uint64_t upperBound_, bool uniform
 
 // Takes an array of buffers and:
 // 1) Converts them into a set of polynomials with arbitrary large coefficients
-// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients 
+// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients
 // 3) Does the NTT transform
 // - inArrayOfBuffers array of buffers to take the bits from
 // - nbrOfBuffers nbr of buffers in the array
@@ -384,10 +384,10 @@ poly64 *NFLlib::deserializeDataNFL(unsigned char **inArrayOfBuffers, uint64_t nb
 
   // bitsplitter does all the hard work WITHOUT using large numbers !
   deserData[0] = bitsplitter(inArrayOfBuffers, nbrOfBuffers, dataBitsizePerBuffer, bitsPerCoordinate);
- 
+
   // We finish the work by applying the NTT transform
 #ifdef MULTI_THREAD
-  #pragma omp parallel for 
+  #pragma omp parallel for
 #endif
   for (unsigned int i = 0 ; i < polyNumber ; i++)
   {
@@ -396,7 +396,7 @@ poly64 *NFLlib::deserializeDataNFL(unsigned char **inArrayOfBuffers, uint64_t nb
     nttAndPowPhi(deserData[i]);
 #endif
   }
-  
+
   return deserData;
 }
 
@@ -404,7 +404,7 @@ poly64 *NFLlib::deserializeDataNFL(unsigned char **inArrayOfBuffers, uint64_t nb
 // Takes a set of polynomial coefficients and outputs their concatenation
 // - indata points to the polynomial coefficients
 // - outdata points to the concatenation obtained
-// - bitsPerChunk defines how many bits has each coefficient 
+// - bitsPerChunk defines how many bits has each coefficient
 // - nb_of_uint64 defines how many coefficients must be concatenated
 // ASSUMPTION: all the polynomials are contiguously allocated
 // ASSUMPTION: outdata has allocated one more uint64_t than needed
@@ -453,14 +453,14 @@ void NFLlib::serializeData32 (uint32_t* indata, unsigned char* outdata, unsigned
   const double uint32PerChunk = (double)bitsPerChunk/32;
   const uint64_t int_uint32PerChunk = ceil(uint32PerChunk);
   const bool isint_uint32PerChunk = (uint32PerChunk==(double)int_uint32PerChunk);
- 
+
   // Build masks for each sub-chunk
   uint64_t subchunkMasks[int_uint32PerChunk];
   unsigned int subchunkSizes[int_uint32PerChunk];
-  
-  // Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk) 
-  // and use with subchunkSizes[subchunkIndex]; 
-  unsigned int subchunkIndex = 0;  
+
+  // Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk)
+  // and use with subchunkSizes[subchunkIndex];
+  unsigned int subchunkIndex = 0;
   for (int i = 0 ; i < int_uint32PerChunk - 1 ; i++)
   {
     subchunkSizes[i]=32;
@@ -468,7 +468,7 @@ void NFLlib::serializeData32 (uint32_t* indata, unsigned char* outdata, unsigned
   }
   subchunkSizes[int_uint32PerChunk-1] = bitsPerChunk - 32 * (int_uint32PerChunk - 1);
   subchunkMasks[int_uint32PerChunk-1] = (1ULL<<(subchunkSizes[int_uint32PerChunk-1]))-1;
-  
+
   // Apply the same approach than in serializeData64 but with varying sizes
   for (uint64_t i = 0 ; i < nb_of_uint32 ;)
   {
@@ -492,14 +492,6 @@ void NFLlib::serializeData32 (uint32_t* indata, unsigned char* outdata, unsigned
 // Helper functions
 // *********************************************************
 
-// Allocate a polynomial potentially with all coefficients set to zero if nullpoly = true
-poly64 NFLlib::allocpoly(bool nullpoly)
-{
-  if (nullpoly == true) return (poly64) calloc(polyDegree*nbModuli,sizeof(uint64_t));
-  else return (poly64) malloc(polyDegree*nbModuli*sizeof(uint64_t));
-}
-
-
 // Lift a polynomial in CRT representation, into a polynomial with large integer coefficients
 mpz_t* NFLlib::poly2mpz(poly64 p)
 {
@@ -513,10 +505,10 @@ mpz_t* NFLlib::poly2mpz(poly64 p)
   for(int cm = 0; cm < nbModuli;cm++) {
     mpz_init2(tmpzbuffer[cm],192);
   }
-  
+
   for(unsigned i=0;i<polyDegree;i++) {
     mpz_set_ui(resultmpz[i],0UL);
-    
+
     for(int cm = 0; cm < nbModuli;cm++) {
       mpz_import(tmpzbuffer[cm], 1, 1, sizeof(uint64_t), 0, 0, p+i+polyDegree*cm);
       mpz_mul(tmpzbuffer[cm], liftingIntegers[cm], tmpzbuffer[cm]);
@@ -580,7 +572,7 @@ void NFLlib::freeNTTMemory(){
     free(omegas[i]);
     free(invomegas[i]);
     mpz_clear(liftingIntegers[i]);
-  
+
     if (i == alreadyInit - 1)
     {
       free(phis);
@@ -627,7 +619,7 @@ void NFLlib::freeNTTMemory(){
 // ****************************************************************************************
 
 // We define first a back to back funtion to test our bitsplitter function
-// If DEBUG_BITSPLIT_B2B the function is used, else it is ignored 
+// If DEBUG_BITSPLIT_B2B the function is used, else it is ignored
 
 //#define DEBUG_BITSPLIT_B2B
 #ifdef DEBUG_BITSPLIT_B2B
@@ -680,11 +672,11 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
   const double uint64PerChunk = (double)bitsPerChunk/56;
   const uint64_t int_uint64PerChunk = ceil(uint64PerChunk);
   const bool  isint_uint64PerChunk = (uint64PerChunk==(double)int_uint64PerChunk);
-  
+
   // Compute subchunk sizes and masks
   uint64_t subchunkMasks[int_uint64PerChunk];
-  // Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk) and 
-  // use subchunkSizes[subchunkIndex]; 
+  // Increment with subchunkIndex=((subchunkIndex+1)%int_uint64PerChunk) and
+  // use subchunkSizes[subchunkIndex];
   unsigned int subchunkSizes[int_uint64PerChunk];
   for (unsigned i = 0 ; i < int_uint64PerChunk - 1 ; i++)
   {
@@ -693,7 +685,7 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
   }
   subchunkSizes[int_uint64PerChunk-1] = bitsPerChunk - 56 * (int_uint64PerChunk - 1);
   subchunkMasks[int_uint64PerChunk-1] = (1ULL<<(subchunkSizes[int_uint64PerChunk-1]))-1;
-  
+
 #ifdef DEBUG_BITSPLIT
 
   for (int i = 0 ; i < int_uint64PerChunk ; i++)
@@ -710,7 +702,7 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
   uint64_t cumulatedsize = 0;
   for (unsigned i = 0 ; i < int_uint64PerChunk ; i++)
   {
-    if (cumulatedsize + subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk] <= (bitsPerBuffer-bitsread)-int_nbChunks*bitsPerChunk)        
+    if (cumulatedsize + subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk] <= (bitsPerBuffer-bitsread)-int_nbChunks*bitsPerChunk)
     {
       supplementalSubchunks++;
       cumulatedsize += subchunkSizes[(subchunkIndex + i) % int_uint64PerChunk];
@@ -735,14 +727,14 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
   std::cerr<<"bitsplit1 nextsubchunksize " <<  subchunkSizes[(subchunkIndex)]<< std::endl;
   std::cerr<<"bitsplit1 nextsubchunk " <<  subchunkIndex<< std::endl;
 #endif
-  
+
   unsigned  char *tmppointer;
   uint64_t *pointer64;
   pointer64 = (uint64_t *) inDataBuffers[bufferIndex];
-  uint64_t bitsremaining=0; 
+  uint64_t bitsremaining=0;
 
-  
-  
+
+
   // Loop over the subchunks in the current buffer
   for (uint64_t i = 0 ; i < totalSubChunks ; )
   {
@@ -757,13 +749,13 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
     }
     if (bitstoread > 128)
     {
-      unsigned shift = bitsread >>3; 
+      unsigned shift = bitsread >>3;
       tmppointer = (unsigned char*) pointer64;
       tmppointer += shift;
       pointer64 = (uint64_t *) (tmppointer);
       bitstoread-= shift<<3;
       bitsread -= shift<<3;
-    } 
+    }
     else
     {
       tmppointer = (unsigned char*) pointer64;
@@ -777,27 +769,27 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
     }
   }
 
-  // If there is a last partial subchunk in this buffer, read it part from this buffer and part 
+  // If there is a last partial subchunk in this buffer, read it part from this buffer and part
   // from next buffer if available
   bitsremaining = (uint64_t) round((nbChunks-int_nbChunks)*bitsPerChunk - cumulatedsize );
 #ifdef DEBUG_BITSPLIT
     std::cout<<"bitsplit2 bitsremaining (should be <56)="<<bitsremaining<<std::endl;
 #endif
-  if (bitsremaining !=0) 
+  if (bitsremaining !=0)
   {
     size_t shift=(64-(bitsread+bitsremaining))/8;
     bitsread+=(shift<<3);
     tmppointer = (unsigned char*) pointer64;
-    tmppointer-=shift; 
+    tmppointer-=shift;
     pointer64 = (uint64_t *) (tmppointer);
     *tmpdata = ((*pointer64)>>bitsread) & ((1ULL<<bitsremaining)-1);
-    // If there is another buffer to deal with, finish the current tmpdata uint64_t 
-    if (bufferIndex < nbrOfBuffers - 1)  
+    // If there is another buffer to deal with, finish the current tmpdata uint64_t
+    if (bufferIndex < nbrOfBuffers - 1)
     {
       pointer64 = (uint64_t *) inDataBuffers[bufferIndex+1];
       *tmpdata |= ((*pointer64)<<bitsremaining) & subchunkMasks[subchunkIndex];
       // We restart bitsread to the bits read in the new buffer
-      bitsread = subchunkSizes[subchunkIndex] - bitsremaining;  
+      bitsread = subchunkSizes[subchunkIndex] - bitsremaining;
       subchunkIndex= (subchunkIndex+1 == int_uint64PerChunk ? 0 : subchunkIndex + 1);
       tmpdata++;
     }
@@ -812,20 +804,20 @@ inline void NFLlib::bs_loop (unsigned char** inDataBuffers, uint64_t nbrOfBuffer
 inline void NFLlib::bs_finish(poly64 &outdata, uint64_t int_uint64PerChunk, uint64_t polyNumber, uint64_t* splitData, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk)
 {
   if(int_uint64PerChunk>1) {
-    outdata=(poly64) calloc(polyNumber*nbModuli*polyDegree + 1,sizeof(uint64_t));   
+    outdata=(poly64) calloc(polyNumber*nbModuli*polyDegree + 1,sizeof(uint64_t));
     internalLongIntegersToCRT( splitData, outdata,   int_uint64PerChunk, ceil(((double)bitsPerBuffer*nbrOfBuffers)/bitsPerChunk));
     free(splitData);
   }
-  else 
+  else
   {
     if (nbModuli > 1)
     {
-      outdata=(poly64) calloc(polyNumber*nbModuli*polyDegree + 1,sizeof(uint64_t));   
+      outdata=(poly64) calloc(polyNumber*nbModuli*polyDegree + 1,sizeof(uint64_t));
       for (unsigned i = 0 ; i < polyNumber ; i++)
       {
         for (int cm = 0 ; cm < nbModuli ; cm++)
         {
-          memcpy(outdata + i*polyDegree*nbModuli + cm*polyDegree, 
+          memcpy(outdata + i*polyDegree*nbModuli + cm*polyDegree,
               splitData + i*polyDegree, polyDegree*sizeof(uint64_t));
         }
       }
@@ -841,7 +833,7 @@ inline void NFLlib::bs_finish(poly64 &outdata, uint64_t int_uint64PerChunk, uint
 
 // This function does all the hard work of deserializeDataNFL
 // 1) Converts input into a set of polynomials with arbitrary large coefficients
-// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients 
+// 2) Reduces the polys through CRT to have nbModuli contiguous polys with uint64_t coefficients
 // Do not try to understand it, it is a nightmare, we won't try to explain it :)
 uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuffers, uint64_t bitsPerBuffer, unsigned int bitsPerChunk)
 {
@@ -852,7 +844,7 @@ uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuff
   const double uint64PerChunk = (double)bitsPerChunk/56;
   const uint64_t int_uint64PerChunk = ceil(uint64PerChunk);
   // How many polynomials are needed to encode the data
-  uint64_t polyNumber = 
+  uint64_t polyNumber =
     ceil((double)bitsPerBuffer*(double)nbrOfBuffers/(double)(bitsPerChunk*polyDegree));
   uint64_t* splitData =
     (uint64_t*)(calloc(polyNumber*polyDegree*int_uint64PerChunk+1,sizeof(uint64_t)));
@@ -860,18 +852,18 @@ uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuff
 
   uint64_t bitsread=0;
   size_t subchunkIndex=0;
-  
+
   // Loop over the buffers
   for (uint64_t h = 0 ; h < nbrOfBuffers ; h++)
-  { 
-    bs_loop (inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk, 
+  {
+    bs_loop (inDataBuffers, nbrOfBuffers, bitsPerBuffer, bitsPerChunk,
         tmpdata, h, bitsread, subchunkIndex);
   }
- 
+
   poly64 outdata;
 
   bs_finish(outdata, int_uint64PerChunk, polyNumber, splitData, nbrOfBuffers, bitsPerBuffer, bitsPerChunk);
-  
+
   return outdata;
 }
 
@@ -879,7 +871,7 @@ uint64_t* NFLlib::bitsplitter (unsigned char** inDataBuffers, uint64_t nbrOfBuff
 
 // Subroutine for bitsplitter, the daemonic function. This is the function that allows
 // us to circumvect GMP
-void NFLlib::internalLongIntegersToCRT(uint64_t* tmpdata, poly64 outdata, uint64_t int_uint64PerChunk, uint64_t totalNbChunks) 
+void NFLlib::internalLongIntegersToCRT(uint64_t* tmpdata, poly64 outdata, uint64_t int_uint64PerChunk, uint64_t totalNbChunks)
 {
   uint64_t* outdataPtr=outdata;
   uint64_t* indataPtr=tmpdata;
@@ -887,32 +879,32 @@ void NFLlib::internalLongIntegersToCRT(uint64_t* tmpdata, poly64 outdata, uint64
 
   uint64_t* chunkParts[int_uint64PerChunk];
 
-  for(int cm=0;cm<nbModuli;cm++) 
+  for(int cm=0;cm<nbModuli;cm++)
   {
     multiplier[cm][0]=1;
-    for(unsigned j=1;j<int_uint64PerChunk;j++) 
+    for(unsigned j=1;j<int_uint64PerChunk;j++)
     {
-      multiplier[cm][j] = mulmod(multiplier[cm][j-1],1ULL<<56,moduli[cm]);  
+      multiplier[cm][j] = mulmod(multiplier[cm][j-1],1ULL<<56,moduli[cm]);
     }
   }
 
-  for(unsigned i=0;i<totalNbChunks;i++) 
+  for(unsigned i=0;i<totalNbChunks;i++)
   {
-    for(unsigned j=0;j<int_uint64PerChunk;j++) 
+    for(unsigned j=0;j<int_uint64PerChunk;j++)
     {
-      for(int cm=0;cm<nbModuli;cm++) 
+      for(int cm=0;cm<nbModuli;cm++)
       {
       // set to zero before computation if not calloc'd
-      *(outdataPtr+cm*polyDegree) += mulmod(*(indataPtr+j), multiplier[cm][j],moduli[cm]);  
+      *(outdataPtr+cm*polyDegree) += mulmod(*(indataPtr+j), multiplier[cm][j],moduli[cm]);
       }
     }
     indataPtr+=int_uint64PerChunk;
     outdataPtr++;
-    if((i+1)%polyDegree==0) 
+    if((i+1)%polyDegree==0)
     {
       outdataPtr += polyDegree*(nbModuli-1);
     }
-  }    
+  }
 }
 
 
