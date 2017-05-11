@@ -27,10 +27,10 @@
 #ifndef DEF_CRYPTOGRAPHICSYSTEM
 #define DEF_CRYPTOGRAPHICSYSTEM
 
-class CryptographicSystem 
+class CryptographicSystem
 {
   public:
-    virtual AbstractPublicParameters& getPublicParameters()=0; 
+    virtual AbstractPublicParameters& getPublicParameters()=0;
     virtual unsigned int getAllCryptoParams(std::set<std::string>& crypto_params_set)=0;
     virtual void setNewParameters(const std::string& crypto_param)=0;
     virtual ~CryptographicSystem(){};
@@ -39,30 +39,27 @@ class CryptographicSystem
 
 #endif
 class HomomorphicCrypto : public CryptographicSystem {
-    
+
 protected:
-    std::string cryptoName; 
-	
+    std::string cryptoName;
+
     static unsigned int default_security_bits;
 public:
     HomomorphicCrypto(const std::string& crypto_name);
-    
+
     virtual char* encrypt(unsigned int ui, unsigned int )=0;
     virtual char* encrypt(char* data, size_t, unsigned int exponent )=0;
     virtual char* encrypt_perftest()=0;
     virtual char* decrypt(char* cipheredData, unsigned int rec_lvl, size_t, size_t)=0;
-    
+
     virtual unsigned int getCryptoParams(unsigned int k, std::set<std::string>& crypto_params)=0;
     virtual long setandgetAbsBitPerCiphertext(unsigned int elt_nbr)=0;
     virtual std::string getSerializedCryptoParams(bool shortversion=true)=0;
     virtual double estimateAbsTime(std::string crypto_param)=0;
     virtual ~HomomorphicCrypto();
-    
-    double estimatePrecomputeTime(std::string crypto_param) { return 0;}
-	uint64_t getCiphertextBytesize() {
-		return 	getPublicParameters().getQuerySizeFromRecLvl(0) / 8;
 
-	}
+    double estimatePrecomputeTime(std::string crypto_param) { return 0;}
+
     std::string& toString() { return cryptoName;}
 };
 

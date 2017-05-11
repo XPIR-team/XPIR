@@ -30,7 +30,7 @@ const std::vector<std::string>  HomomorphicCryptoFactory_internal::crypto_method
 HomomorphicCrypto* HomomorphicCryptoFactory_internal::getCrypto(std::string cryptoType)
 {
   HomomorphicCrypto* h;
-  
+
   if (cryptoType == "Paillier")
   {
     h = new PaillierAdapter();
@@ -48,10 +48,10 @@ HomomorphicCrypto* HomomorphicCryptoFactory_internal::getCrypto(std::string cryp
     std::cerr << "HomomorphicCryptoFactory_internal: Warning, unrecognized cryptosystem. Returning NULL" << std::endl;
     h = NULL;
   }
-  
+
   return h;
 }
-  
+
 HomomorphicCrypto* HomomorphicCryptoFactory_internal::getCryptoMethod(std::string crypto_system_desc)
 {
   std::vector<std::string> fields;
@@ -64,7 +64,7 @@ HomomorphicCrypto* HomomorphicCryptoFactory_internal::getCryptoMethod(std::strin
   return h;
 }
 
-  
+
 // Returns a vector with all the cryptosystems THAT WE WANT TO BE USED
 void HomomorphicCryptoFactory_internal::getAllCryptoSystems(std::vector<HomomorphicCrypto*>& crypto_sys_vec)
 {
@@ -74,14 +74,5 @@ void HomomorphicCryptoFactory_internal::getAllCryptoSystems(std::vector<Homomorp
   crypto_sys_vec.push_back(crypto_ptr);
 }
 
-void HomomorphicCryptoFactory_internal::getOneCryptoSystem(std::vector<HomomorphicCrypto*>& crypto_sys_vec, std::string crypto_system_desc)
-{
-  std::vector<std::string> fields;
-  boost::algorithm::split(fields, crypto_system_desc, boost::algorithm::is_any_of(":"));
-  
-  HomomorphicCrypto* h;
-  h = getCrypto(fields[0]);
-  crypto_sys_vec.push_back(h);
-}
 
 

@@ -53,18 +53,18 @@ void DESC::makeMenu(char* receivedBuffer)
 		if(catalogType==0) {
 #ifdef DEBUG
 			std::cout << "DESC: catalog type 0 : "<<catalogType<<std::endl;
-#endif		
+#endif
 			ss >> fileCount;
 			//The rest of catalog alternates filename lines and size lines.
 			ss.getline (fileName, FILENAME_MAX_BYTE_SIZE);
 
       nbFiles = 0;
-			for (uint64_t i = 0; i < fileCount; i++) 
+			for (uint64_t i = 0; i < fileCount; i++)
 			{
 				ss.getline (fileName, FILENAME_MAX_BYTE_SIZE);
 				ss.getline (tmpSize, FILENAME_MAX_BYTE_SIZE);
 
-				if (ss.gcount () > 0) 
+				if (ss.gcount () > 0)
 				{
 					fileList.push_back(fileName);
 					fileSize.push_back(atoi(tmpSize));
@@ -79,14 +79,14 @@ void DESC::makeMenu(char* receivedBuffer)
 		} else if(catalogType==1) {
 #ifdef DEBUG
 			std::cout << "DESC: catalog type 0 : "<<catalogType<<std::endl;
-#endif		
-			
+#endif
+
 			ss >> fileCount;
 			ss.getline (tmpSize, FILENAME_MAX_BYTE_SIZE);
 			ss.getline (tmpSize, FILENAME_MAX_BYTE_SIZE);
 			maxFileSize=atoi(tmpSize);
 #ifndef NO_CATALOG
-      for (uint64_t i = 0; i < fileCount; i++) 
+      for (uint64_t i = 0; i < fileCount; i++)
 			{
 					fileList.push_back(std::to_string(i));
 					fileSize.push_back(maxFileSize);
@@ -111,7 +111,7 @@ void DESC::makeMenu(char* receivedBuffer)
  *	Return :
  *		- std::string : return fileName if exist and "None" else.
  **/
-string DESC::getFileName(uint64_t index) 
+string DESC::getFileName(uint64_t index)
 {
 #ifndef NO_CATALOG
 	return (index < nbFiles) ?  fileList[index] : "None";
@@ -129,7 +129,7 @@ string DESC::getFileName(uint64_t index)
  *		- int : return fileSize of exist and 0 else.
  *
  **/
-uint64_t DESC::getFileSize(uint64_t index) 
+uint64_t DESC::getFileSize(uint64_t index)
 {
 #ifndef NO_CATALOG
 	return (index < fileSize.size()) ? fileSize[index] : -1;
@@ -139,24 +139,11 @@ uint64_t DESC::getFileSize(uint64_t index)
 }
 
 /**
- *	Checks whether the provided file number exists. 
- *	Param : 
- *		- int dex : file index.
- *
- *	Return :
- *		- bool : true if file exist, false else.
- **/
-bool DESC::file_exists (uint64_t index) 
-{
-	return (index < nbFiles) ? true : false; 
-}
-
-/**
  *	Get number of files.
  *	Return :
  *		- unsigned int : number of files.
  **/
-uint64_t DESC::getFilesNum() 
+uint64_t DESC::getFilesNum()
 {
 	return nbFiles;
 }
@@ -165,7 +152,7 @@ uint64_t DESC::getFilesNum()
  *	Get the biggest file.
  *	Return :
  *		- int : biggest file size.
- *		
+ *
  **/
 uint64_t DESC::getMaxFileSize()
 {
@@ -175,14 +162,14 @@ uint64_t DESC::getMaxFileSize()
 /**
  *	Get file list.
  *	Return :
- *		- const std::vector<string>& : constant reference to the fileList attribute. 
+ *		- const std::vector<string>& : constant reference to the fileList attribute.
  **/
 const vector<string>& DESC::getFileList()
 {
 	return fileList;
 }
 
-DESC::~DESC() 
+DESC::~DESC()
 {
 	fileList.clear();
 	fileSize.clear();

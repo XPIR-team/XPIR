@@ -27,7 +27,7 @@ PaillierPublicParameters::PaillierPublicParameters()
 //	bitKeySize(bit_key_size),
 //	bitAbsSize(bitKeySize - 8),
 //	ciphSize(bitKeySize * 2)
-//{ 
+//{
 //  cryptoName = "Paillier";
 //  securityBits = 0;
 //}
@@ -37,22 +37,18 @@ PaillierPublicParameters::~PaillierPublicParameters()
 }
 
 char* PaillierPublicParameters::getByteModulus() {
-  char *key = new char[(getKeyBitsize() / 8 ) + sizeof(int)](); 
+  char *key = new char[(getKeyBitsize() / 8 ) + sizeof(int)]();
   mpz_export(key, NULL, 1, sizeof(char) , 0, 0, *pubkey.getnj(1));
   int init_s = pubkey.getinit_s();
   memcpy(key+(getKeyBitsize()/8), &init_s, sizeof(int));
 	return key;
 }
 
-unsigned int PaillierPublicParameters::getCiphertextSize() {
-	return ciphSize; 
-}
-
-unsigned int PaillierPublicParameters::getKeyBitsize() { 
+unsigned int PaillierPublicParameters::getKeyBitsize() {
 	return bitKeySize;
 }
 
-unsigned int PaillierPublicParameters::getAbsorptionBitsize() { 
+unsigned int PaillierPublicParameters::getAbsorptionBitsize() {
 	return bitAbsSize;
 }
 
@@ -74,11 +70,11 @@ paillier_pubkey* PaillierPublicParameters::getPubKey() {
 }
 
 void PaillierPublicParameters::setModulus(char* rawPubKey){
-  pubkey.init_key(getKeyBitsize(), rawPubKey);	
+  pubkey.init_key(getKeyBitsize(), rawPubKey);
 }
 
 //lvl starts at 1 !!!
-unsigned int PaillierPublicParameters::getCiphBitsizeFromRecLvl(unsigned int lvl) 
+unsigned int PaillierPublicParameters::getCiphBitsizeFromRecLvl(unsigned int lvl)
 {
   return (lvl+pubkey.getinit_s()) * bitKeySize;
 }
@@ -103,7 +99,7 @@ void PaillierPublicParameters::setModulusbits(unsigned int modulusbits_)
 void PaillierPublicParameters::setSecurityBits(unsigned int securitybits_)
 {
   securityBits = securitybits_;
-} 
+}
 
 void PaillierPublicParameters::computeNewParameters(const std::string& crypto_param_descriptor)
 {
@@ -119,10 +115,10 @@ void PaillierPublicParameters::computeNewParameters(const std::string& crypto_pa
 std::string PaillierPublicParameters::getSerializedParams(bool shortversion)
 {
   std::string params;
-  
+
   // Name:security:plaintext_modulusbitsize:ciphertext_modulusbitsize:abs_bits
   params = cryptoName + ":" + std::to_string(securityBits) + ":" + std::to_string(bitKeySize) + ":" + std::to_string(ciphSize);
-  
+
   if (!shortversion) params += ":" + std::to_string(bitAbsSize);
 
   return params;
@@ -138,5 +134,5 @@ void PaillierPublicParameters::setMockedPubKey()
 {
   pubkey.init_key(getKeyBitsize());
 }
-    
+
 

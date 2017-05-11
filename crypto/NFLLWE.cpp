@@ -16,7 +16,7 @@
 */
 
 #include "NFLLWE.hpp"
-#include <fstream> 
+#include <fstream>
 //#define bench
 //#define Repetition 10000
 
@@ -29,9 +29,9 @@ void NFLLWE_DEBUG_MESSAGE(const char *s,poly64 p, unsigned int n){
 
 // *********************************************************
 // Constructors and initialization
-// The constructors are not able to set all the parameters 
-// and setNewParameters has to be called afterward, 
-// the attribute alreadyInit reflects this uninitialized 
+// The constructors are not able to set all the parameters
+// and setNewParameters has to be called afterward,
+// the attribute alreadyInit reflects this uninitialized
 // status
 // *********************************************************
 
@@ -58,8 +58,8 @@ void NFLLWE::setNewParameters(const std::string& crypto_param_descriptor)
   setsecurityBits(atoi(fields[1].c_str()));
   polyDegree_ = atoi(fields[2].c_str());
   aggregatedModulusBitsize_ = atoi(fields[3].c_str());
-  // Does the fourth parameter exist ? If so set it 
-  if (fields.size() >= 5) abspc_bitsize = atoi(fields[4].c_str()); 
+  // Does the fourth parameter exist ? If so set it
+  if (fields.size() >= 5) abspc_bitsize = atoi(fields[4].c_str());
 
   setNewParameters(polyDegree_,aggregatedModulusBitsize_, abspc_bitsize);
 }
@@ -69,7 +69,7 @@ void NFLLWE::setNewParameters(const std::string& crypto_param_descriptor)
 // it sets the alreadyInit attribute to reflects this
 void  NFLLWE::setNewParameters(unsigned int polyDegree_, unsigned int aggregatedModulusBitsize_, int absPCBitsize_)
 {
-	// Our public parameters need a pointer on us	
+	// Our public parameters need a pointer on us
   publicParams.setcrypto_container(this);
 
 	// We still need to transfer this two attributes to the crypto_object
@@ -100,7 +100,7 @@ void  NFLLWE::setNewParameters(unsigned int polyDegree_, unsigned int aggregated
 	Abit_mod_shoup = new uint64_t[nbModuli];
 
 
-	// initialize the secret key 
+	// initialize the secret key
   secretKey[0] = nflInstance.allocBoundedRandomPoly(0,true);
 	for (unsigned short currentModulus = 0; currentModulus < nbModuli; currentModulus++) {
 	  secretKey[currentModulus] = secretKey[0] + polyDegree*currentModulus;
@@ -111,13 +111,12 @@ void  NFLLWE::setNewParameters(unsigned int polyDegree_, unsigned int aggregated
     }
   }
  recomputeNoiseAmplifiers();
-  
+
 }
 
 // *********************************************************
 // Getters
 // *********************************************************
-poly64* NFLLWE::getsecretKey() { return secretKey; }
 unsigned int NFLLWE::getpolyDegree() { return polyDegree; }
 
 // *********************************************************
@@ -160,9 +159,9 @@ void NFLLWE::mulandadd(lwe_cipher rop, lwe_in_data op1, lwe_query op2, uint64_t 
 	NFLLWE_DEBUG_MESSAGE("in_data[0].p : ",op1.p[0],4);
   	NFLLWE_DEBUG_MESSAGE("in_data[0].a : ",op2.a,4);
   	NFLLWE_DEBUG_MESSAGE("in_data[0].b : ",op2.b,4);
-	
+
 	mulandaddCiphertextNTT(rop, op1, op2, current_poly);
-	
+
 	NFLLWE_DEBUG_MESSAGE("out_data[0].a : ",rop.a,4);
   	NFLLWE_DEBUG_MESSAGE("out_data[0].b : ",rop.b,4);
 }
@@ -171,15 +170,15 @@ void NFLLWE::mulandadd(lwe_cipher rop, lwe_in_data op1, lwe_query op2, uint64_t 
 void NFLLWE::mulandadd(lwe_cipher rop, const lwe_in_data op1, const lwe_query op2, const lwe_query op2prime, const uint64_t current_poly, int rec_lvl)
 {
   // Don't modify the pointers inside the data or it will be permanent
-  poly64 ropa = rop.a, ropb = rop.b, op2a = op2.a, op2b = op2.b, op2primea = op2prime.a, 
+  poly64 ropa = rop.a, ropb = rop.b, op2a = op2.a, op2b = op2.b, op2primea = op2prime.a,
          op2primeb = op2prime.b, op1pcurrent = op1.p[current_poly];
 
-	
+
 	 	const unsigned int K = polyDegree;
 		const unsigned int md = nbModuli;
-	for(unsigned short currentModulus=0;currentModulus<md;currentModulus++) 
+	for(unsigned short currentModulus=0;currentModulus<md;currentModulus++)
   {
-	  
+
  		for (unsigned i = 0; i < K; i++)
 		{
 			nflInstance.mulandaddShoup(ropa[i],op1pcurrent[i],op2a[i],op2primea[i],moduli[currentModulus]);
@@ -202,7 +201,7 @@ void NFLLWE::mulandadd(lwe_cipher rop, const lwe_in_data op1, const lwe_query op
 void NFLLWE::mul(lwe_cipher rop, const lwe_in_data op1, const lwe_query op2, const lwe_query op2prime, const uint64_t current_poly, int rec_lvl)
 {
   // Don't modify the pointers inside the data or it will be permanent
-  poly64 ropa = rop.a, ropb = rop.b, op2a = op2.a, op2b = op2.b, op2primea = op2prime.a, 
+  poly64 ropa = rop.a, ropb = rop.b, op2a = op2.a, op2b = op2.b, op2primea = op2prime.a,
          op2primeb = op2prime.b, op1pcurrent = op1.p[current_poly];
 
 	NFLLWE_DEBUG_MESSAGE("in_data[0].p : ",op1.p[current_poly],4);
@@ -210,8 +209,8 @@ void NFLLWE::mul(lwe_cipher rop, const lwe_in_data op1, const lwe_query op2, con
 	NFLLWE_DEBUG_MESSAGE("in_data[0].b : ",op2.b,4);
 	NFLLWE_DEBUG_MESSAGE("in_data[0].a' : ",op2prime.a,4);
 	NFLLWE_DEBUG_MESSAGE("in_data[0].b' : ",op2.b,4);
-	
-	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) 
+
+	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++)
   {
 		for (unsigned i = 0; i < polyDegree; i++)
 		{
@@ -236,9 +235,9 @@ void NFLLWE::mulandadd(lwe_cipher rop, lwe_in_data op1, lwe_query op2, int rec_l
 	NFLLWE_DEBUG_MESSAGE("in_data p: ",op1.p[0],4);
 	NFLLWE_DEBUG_MESSAGE("in_data a: ",op2.a,4);
 	NFLLWE_DEBUG_MESSAGE("in_data b: ",op2.b,4);
-	
+
   	mulandaddCiphertextNTT(rop, op1, op2);
-	
+
 	NFLLWE_DEBUG_MESSAGE("out_data.a : ",rop.a,4);
 	NFLLWE_DEBUG_MESSAGE("out_data.b : ",rop.b,4);
 }
@@ -264,8 +263,8 @@ void NFLLWE::mulandaddCiphertextNTT(lwe_cipher rop, lwe_in_data op1, lwe_query o
 
 
 //*********************************
-// Encryption and decryption 
-//********************************* 
+// Encryption and decryption
+//*********************************
 
 // The internal encrypt method
 void  NFLLWE::enc(lwe_cipher *c, poly64 m)
@@ -283,38 +282,38 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 	poly64 tmpm = m;
 
 	//   b = (a*s) % f + e * A + m;
-    
+
 	// Noise creation
 	uint64_t Berr=publicParams.getnoiseUB();
-	uint64_t A_bits= publicParams.getAbsorptionBitsize() / publicParams.getpolyDegree();	
-	
+	uint64_t A_bits= publicParams.getAbsorptionBitsize() / publicParams.getpolyDegree();
+
 	// We deal with the nbModuli polynoms at once because the noise is the same size for all of them
 	nflInstance.setBoundedRandomPoly(c->b, 2*Berr-1, !uniform);
 
 	NFLLWE_DEBUG_MESSAGE("Noise used: ",c->b, 4);
 #ifdef CRYPTO_DEBUG
 	std::cout << "NFLLWE: Noise amplifier: " << A_bits << std::endl;
-#endif 
-		
+#endif
+
 	// Adjustments and addition to plaintext
 	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
 		for(unsigned int i=0;i<polyDegree;i++) {
 			// e is multiplied by the amplifier A for which we know the size A_bits
 			// tmpb[i] = tmpb[i] << (unsigned) A_bits;
 			//  std::cout << "noise: " << tmpb[i] << std::endl;
-			//std::cout << std::hex << tmpb[i] << " " << std::dec;			
-				
+			//std::cout << std::hex << tmpb[i] << " " << std::dec;
+
 			tmpb[i] = nflInstance.mulmodShoup(tmpb[i], Abit_mod[currentModulus],Abit_mod_shoup[currentModulus], moduli[currentModulus]);
-      
+
 			// and shifted to be in [-(Berr-1) .. (Berr-1)]
-			//tmpb[i] += moduli[currentModulus]-((Berr-1)<<A_bits);   
+			//tmpb[i] += moduli[currentModulus]-((Berr-1)<<A_bits);
 
 			// We add the shifted noise to the plaintext
 			tmpb[i] = nflInstance.addmod(tmpb[i], tmpm[i], moduli[currentModulus]);
-      
-			// And reduce the whole if needed 
+
+			// And reduce the whole if needed
 			if(tmpb[i]>moduli[currentModulus]) tmpb[i]-=moduli[currentModulus];
-			
+
 		}
 		tmpb+=polyDegree;
 		tmpm+=polyDegree;
@@ -333,9 +332,9 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 	poly64 tmp = (poly64) calloc(polyDegree*nbModuli, sizeof(uint64_t));
 #endif
 
-	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) 
+	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++)
 	{
-    
+
 		// We multiply it by s and add to the previous message and noise
 		for (unsigned int i = 0 ; i < polyDegree ; i++)
 		{
@@ -355,9 +354,9 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 		tmpb+=polyDegree;
 	}
 
-	// There is already a ifdef debug inside this function but 
+	// There is already a ifdef debug inside this function but
 	// tmp is not defined if we are not in debug mode
-#ifdef DEBUG 
+#ifdef DEBUG
 	NFLLWE_DEBUG_MESSAGE("a*s: ",tmp, 4);
   free(tmp);
 #endif
@@ -370,9 +369,9 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 void NFLLWE::dec(poly64 m, lwe_cipher *c)
 {
 	uint64_t A_bits = publicParams.getAbsorptionBitsize() / publicParams.getpolyDegree();
-  const uint64_t bitmask = (1ULL<<A_bits) -1; 	
-  mpz_t moduliProduct; 
-	
+  const uint64_t bitmask = (1ULL<<A_bits) -1;
+  mpz_t moduliProduct;
+
   // Get the product of all moduli from the nflInstance object;
   nflInstance.copymoduliProduct(moduliProduct);
 
@@ -384,7 +383,7 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
 	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
 
 		// We first get the amplified noise plus message (e*A+m =b-a*S)
-		for (unsigned int i=0 ; i < polyDegree; i++) 
+		for (unsigned int i=0 ; i < polyDegree; i++)
     {
 			uint64_t temp=0;
 			nflInstance.mulandaddShoup(temp, tmpa[i], secretKey[currentModulus][i],
@@ -405,10 +404,10 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
 
 
   if(nbModuli>1) {
-	   	  
+
 	  mpz_t *tmprez=nflInstance.poly2mpz(tmpm);
-	  
-	  
+
+
 
   	// If e*A+m < p/2 we mask the message bits: bitmask = (1ULL<<A_bits) -1
 	  // If e *A+m > p/2 we do a little trick to avoid signed integers and modulus reduction
@@ -423,7 +422,7 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
     mpz_sub_ui(bitmaskz, bitmaskz, 1);
 #ifdef CRYPTO_DEBUG
     gmp_printf("Mask used: %Zx\n",bitmaskz);
-#endif	
+#endif
 	  // Shall we prefetch here ?
     mpz_t tmpz;
     mpz_init(tmpz);
@@ -442,30 +441,30 @@ void NFLLWE::dec(poly64 m, lwe_cipher *c)
       {
         mpz_and(tmprez[i], tmprez[i], bitmaskz);
       }
-	
+
     	// Combien d'uint32 ?
 	    int combien = ceil((double)A_bits/32);
 	    mpz_export(((uint32_t*)tmpm)+i*combien, NULL, -1, sizeof(uint32_t), 0, 0, tmprez[i]);
 	    mpz_clear(tmprez[i]);
 	  }
-    
+
     delete[] tmprez;
     mpz_clears(moduliProduct, tmpz, magicConstz, bitmaskz, NULL);
 
   } else { // nbModuli=1
-	
-	
+
+
 		// If e*A+m < p/2 we mask the message bits: bitmask = (1ULL<<A_bits) -1
 		// If e*A+m > p/2 we do a little trick to avoid signed integers and modulus reduction
 		// e[i]= e[i] + 2**61 - p (we replace p by 2**61) and then bitmask the message.
 		const uint64_t magicConst = (1ULL<<61)-moduli[0];// 2**61 - p
-		
+
 		// Shall we prefetch here ?
 		for (unsigned int i = 0 ; i < polyDegree ; i++)
 		{
 			//For testing we may do a hardcoded modulus but not always. m[i] = m[i] % modulus;
 			tmpm[i] = (tmpm[i] > moduli[0]/2) ? (tmpm[i] + magicConst)& bitmask : tmpm[i] & bitmask;
-		}	
+		}
 	}
 }
 
@@ -481,7 +480,7 @@ char* NFLLWE::encrypt(unsigned int ui, unsigned int d)
 		ui %= 1<<publicParams.getAbsorptionBitsize();
 	}
 
-	lwe_cipher c; 
+	lwe_cipher c;
 	poly64 m = (poly64)calloc(nbModuli*polyDegree,sizeof(uint64_t));
 	for (unsigned int cm = 0 ; cm < nbModuli ; cm++)
   {
@@ -497,10 +496,10 @@ char* NFLLWE::encrypt(char* data, size_t s, unsigned int exponent ){
     return nullptr;
 }
 
-// Do a ciphertext for a plaintext with alternating bits (for performance tests) 
+// Do a ciphertext for a plaintext with alternating bits (for performance tests)
 char* NFLLWE::encrypt_perftest()
 {
-	lwe_cipher c; 
+	lwe_cipher c;
   poly64 m = nflInstance.allocBoundedRandomPoly(0, true);
 	enc(&c,m);
 	free(m);
@@ -514,7 +513,7 @@ char* NFLLWE::decrypt(char* cipheredData, unsigned int rec_lvl, size_t, size_t)
   ciphertext.b = ciphertext.a + nbModuli * polyDegree;
   poly64 clear_data = (poly64) calloc(nbModuli * polyDegree, sizeof(uint64_t));
   unsigned int bits_per_coordinate = publicParams.getAbsorptionBitsize()/polyDegree;
-  
+
 #ifdef DEBUG
   std::cout<<"Allocated (bytes): "<<nbModuli * polyDegree * sizeof(uint64_t)<<std::endl;
   std::cout<<"Bits per coordinate: "<<bits_per_coordinate<<std::endl;
@@ -571,7 +570,7 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
   {
     string param;
     p_size = findMaxModulusBitsize(k, degree);
-    
+
     // We give a very small margin 59 instead of 60 so that 100:1024:60 passes the test
     //for (unsigned int i = 1; i * 59 <= p_size ; i++)//(p_size > 64) && ((p_size % 64) != 0))
     for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= 240; i++)
@@ -586,8 +585,8 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
 }
 
 void NFLLWE::recomputeNoiseAmplifiers() {
-	uint64_t A_bits= publicParams.getAbsorptionBitsize() / publicParams.getpolyDegree();	
-	mpz_t tmpz1,tmpz2; 
+	uint64_t A_bits= publicParams.getAbsorptionBitsize() / publicParams.getpolyDegree();
+	mpz_t tmpz1,tmpz2;
 	mpz_init(tmpz1);
 	mpz_init(tmpz2);
 	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
@@ -605,7 +604,7 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 {
   unsigned int estimated_k = 5;//Estimate K can not be too low
 
-  while(!checkParamsSecure(estimated_k,n,p_size)) estimated_k++; 
+  while(!checkParamsSecure(estimated_k,n,p_size)) estimated_k++;
 
   return --estimated_k;
 }
@@ -619,9 +618,9 @@ long NFLLWE::setandgetAbsBitPerCiphertext(unsigned int elt_nbr)
     double nbr_bit = floor(( (p_size - 1) - log2(nb_sum) - log2(Berr) -log2(static_cast<double>(polyDegree))) / 2.0);
 
     publicParams.setAbsPCBitsize(nbr_bit);
-	
+
 	recomputeNoiseAmplifiers();
-	
+
     return long(nbr_bit);
 }
 
@@ -749,49 +748,49 @@ void NFLLWE::clearSecretKeys()
 
 
 //This main is for benchmarking and tests
-// 
+//
 // int main(int c,char **v) {
-// 	
+//
 // // Benchs et correctness enc/dec
-// 	 	NFLLWE n;	
+// 	 	NFLLWE n;
 // 		n.setNewParameters(1024,64,22);
 //  		n.setmodulus(P64);
 //  		n.getPublicParameters().computeNewParameters("lwe:80:1024:64:22");
-//  	
+//
 //  		poly64 p=n.boundedRandomPoly(1024, 1023);
 //  		poly64 result=(poly64)calloc(1024,sizeof(uint64_t));
-//  		
+//
 //  	 	std::cout<<"0-RND polynom: ";n.print_poly64(p,4);std::cout<<std::endl;
-//  		
-//  		
-//  		lwe_cipher cyph;  
+//
+//
+//  		lwe_cipher cyph;
 //  #ifdef bench
 //  		double start     = omp_get_wtime();
 //  		for(int i        = 0;i<Repetition;i++) {
-//  #endif 
+//  #endif
 //  			n.enc(&cyph,p);
 //  #ifdef bench
-//  		
+//
 //  			}
 //  		double end        = omp_get_wtime();
 //  		std::cout<<Repetition/(end-start)<<" chiffre/s"<<std::endl;
-//  		
-//  		
+//
+//
 //  		 start     = omp_get_wtime();
 //  		for(int i        = 0;i<Repetition;i++) {
-//  #endif 
-//  			
+//  #endif
+//
 //  			n.dec(result,&cyph);
 //  #ifdef bench
 //  		}
 //  		 end        = omp_get_wtime();
 //  		std::cout<<Repetition/(end-start)<<" dechiffre/s"<<std::endl;
-//  #endif 
+//  #endif
 // 		NFLLWE_DEBUG_MESSAGE("Encrypted into a",cyph.a,4);
 // 		NFLLWE_DEBUG_MESSAGE("Encrypted into b",cyph.b,4);
 //  	 	NFLLWE_DEBUG_MESSAGE("1-Encoded-Decoded (but not unshoupified): ",result,4);
-//  		
-// 	
+//
+//
 //  		for(int i = 0;i<1024;i++) {
 //  		  if((result[i]%P64)!=(result[i]%P64)) {
 //  			std::cout<<"err "<<(p[i])<<" != "<<(result[i]%P64)<<std::endl;
@@ -799,48 +798,48 @@ void NFLLWE::clearSecretKeys()
 //  			break;
 //  		  }
 //  		}
-//  	
+//
 // 	std::cout<< "enc/dec test passed"<<std::endl;
-// 	
-// 	
-// 	
+//
+//
+//
 // 	// int bytesize=1024*22/8+1;
 // 	//  	char* mydata=(char*)calloc(bytesize,1);
 // 	//  	for(int i=0;i<bytesize;i++) {
 // 	//  		mydata[i]='A'+(i%('Z'-'A'));
 // 	//  	}
 // 	//  	std::cout<<"Initial data : "<<mydata<<std::endl;
-// 	// 
+// 	//
 // 	//  	uint64_t bitsize=bytesize*8;
 // 	//  	uint64_t nbOfPolys;
 // 	//  	Warning, need to tranform this line with the new version of deserializeDataNTT which takes 4 parameters instead of 3 poly64 *mydata_poly=n.deserializeDataNTT((unsigned char*)mydata,bitsize,nbOfPolys);
-// 	//  	
+// 	//
 // 	//  	std::cout<<"The string has been encoded into ";n.print_poly64hex(*mydata_poly,1024*nbOfPolys);
 // 	//   	std::cout<<std::endl<<"nbOfPolys = "<<nbOfPolys<<std::endl;
-// 	//  	
+// 	//
 // 	//  	// encrypt of poly64 simulation
 // 	//  	lwe_cipher *cyphertext=new lwe_cipher[nbOfPolys];
-// 	// for(int i=0;i<nbOfPolys;i++) { 
+// 	// for(int i=0;i<nbOfPolys;i++) {
 // 	//  		n.enc(&(cyphertext[i]),*(mydata_poly + i*1024));
 // 	//  	//std::cout<<"The string has been cyphered into a["<<i<<"]";n.print_poly64(cyphertext[i].a,1024);
 // 	//  	//std::cout<<"The string has been cyphered into b["<<i<<"]";n.print_poly64(cyphertext[i].a,1024);
 // 	// }
-// 	//  
+// 	//
 // 	//  	poly64 unciphereddata_poly[nbOfPolys];// = (poly64*)calloc(1024*nbOfPolys,sizeof(uint64_t));
-// 	// for(int i=0;i<nbOfPolys;i++) { 	
+// 	// for(int i=0;i<nbOfPolys;i++) {
 // 	// 	unciphereddata_poly[i]=(poly64)n.decrypt((char*)(cyphertext[i].a), (unsigned int)0,(size_t) 0,(size_t) 0);
 // 	//  	std::cout<<"Decoded into polynom: ";n.print_poly64hex((poly64)unciphereddata_poly[i],128);std::cout<<std::endl;
 // 	// }
-// 	//  	
-// 	//  	
+// 	//
+// 	//
 // 	//  	unsigned char* unciphereddata=n.serializeData(unciphereddata_poly[0], nbOfPolys,bitsize, true);
-// 	// 
+// 	//
 // 	//  	std::cout<<"Decoded into "<<std::hex<<unciphereddata<<std::endl;
 // 	//  	std::cout<<"A= "<<std::dec<<(short)'A'<<std::endl<<std::endl;
 // 	//  	std::cout<<"G= "<<std::dec<<(short)'G'<<std::endl<<std::endl;
-// 	//  
-// 	//  
-//  	//  
+// 	//
+// 	//
+//  	//
 //  	// //lwe_cipher *cypherui;
 //  	// //cypherui=(lwe_cipher *)n.encrypt(1,0);
 //  	// //unciphereddata_poly = (poly64)n.decrypt((char*)(cypherui->a), (unsigned int)0,(size_t) 0,(size_t) 0);

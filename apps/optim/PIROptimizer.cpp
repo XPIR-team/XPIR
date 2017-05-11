@@ -39,11 +39,11 @@ PIROptimizer::PIROptimizer(string server_ip_, int port_, FitnessType fitnessMeth
   nbc(1),
   optimum(fitnessMethod_),
   silent(false)
-{  
+{
   // Max latency for the socket when connecting to server
   struct timeval tv;
-  tv.tv_sec  = 5; 
-  tv.tv_usec = 0;         
+  tv.tv_sec  = 5;
+  tv.tv_usec = 0;
   setsockopt(s.native(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
   setsockopt(s.native(), SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
 }
@@ -87,7 +87,7 @@ void PIROptimizer::optimize(FixedVars& fixed_vars, unsigned int exp_nbr)
  * Loop on all crypto modules to finc possible parameters
  * Initialize caches with computing costs
  * Iterate on all parameters except aggregation
- * Use findAlphaDicho to explore best aggregation values through dichotomy 
+ * Use findAlphaDicho to explore best aggregation values through dichotomy
  **/
 void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_vars, unsigned int exp_nbr)
 {
@@ -112,7 +112,7 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
     std::cout << "Optimizer: Crypto parameters manually forced to " << fixedVars.manual_crypto_params << std::endl;
 
     // Get a regular expression from the requested params
-    cp_rex = new std::regex(fixedVars.manual_crypto_params); 
+    cp_rex = new std::regex(fixedVars.manual_crypto_params);
 
     // Only take into account NoCryptography as a possibility if requested
     if(std::regex_match("NoCryptography", *cp_rex))
@@ -138,15 +138,15 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
     crypto = crypto_system_ptr;
     //Get i-th crypto module's public parameter
     currentPublicParams = &crypto->getPublicParameters();
-  
+
     // Get all the proposed parameter sets for the requested security on this crypto module
-    crypto->getCryptoParams(fixedVars.k, crypto_params_desc_set); 
-    
+    crypto->getCryptoParams(fixedVars.k, crypto_params_desc_set);
+
     // If special parameters requested, remove all those that don't match the regexp
     if(fixedVars.manual_crypto_params != "")
     {
 		const   set<std::string> crypto_params_desc_set_copy=crypto_params_desc_set;
-		
+
       for (auto cp_ptr : crypto_params_desc_set_copy)
       {
         if (!std::regex_match(cp_ptr, *cp_rex)) crypto_params_desc_set.erase(cp_ptr);
@@ -158,7 +158,7 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
       if (crypto_params_desc_set.size() == 0) continue;
       //crypto_params_desc_set.insert(fixedVars.manual_crypto_params);
     }
-    // Add to cost dictionnaries (abs_cache and precompute_cache) estimates from server 
+    // Add to cost dictionnaries (abs_cache and precompute_cache) estimates from server
     // or pre-established values if no server available
 		getAbsAndPreCachesFromServer(s, crypto);
     // Add to cost dictionnaries (encryptcache, decryptcache) cost estimates (pot. precomputed)
@@ -170,7 +170,7 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
       // Set the current public parameters to the parameter set values
       currentPublicParams->computeNewParameters(crypto_params_desc);
       // Iterate on the dimensions
-      for (unsigned int d = fixedVars.dMin ; d  <= fixedVars.dMax ; d++) 
+      for (unsigned int d = fixedVars.dMin ; d  <= fixedVars.dMax ; d++)
       {
         // Define a OptimVars object (with the variables that we can choose for optimization)
         OptimVars vars(fixedVars.fitness, fixedVars);
@@ -178,13 +178,13 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
         // Get best alpha for this iteration given the fitness method and set the variables in vars accordingly
         // - First do a test with no aggreggation
         findAlpha(d, 1, 1, vars, exp_nbr);
-        // - Then search with dichotomy 
+        // - Then search with dichotomy
         findAlphaDicho(0, getMaxAlpha(), d, exp_nbr, vars);
       }
     }
     // Show and write the optimized values.
     processResults(exp_nbr);
-    
+
     // Save best optimum inter cryptosystems
     std::cout << "Optimizer: Comparing (" << optimum.crypto_params << ", " << optimum.getValue() << ") with (" << global_optimum.crypto_params << ", " << global_optimum.getValue() << ")" << std::endl;
     if(optimum < global_optimum)
@@ -199,7 +199,7 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
     delete crypto;
   }
   disconnect();
-  
+
   // If nothing was found say it and exit
   if (global_optimum.crypto_params == "No crypto params")
   {
@@ -209,7 +209,7 @@ void PIROptimizer::optimize(boost::asio::ip::tcp::socket& s, FixedVars& fixed_va
 }
 
 /**
- *  Set optimum with values giving by a trivial PIR. (i.e download the entiere database) 
+ *  Set optimum with values giving by a trivial PIR. (i.e download the entiere database)
  **/
 void PIROptimizer::noCryptoSystemOptim(unsigned int exp_nbr)
 {
@@ -223,7 +223,7 @@ void PIROptimizer::noCryptoSystemOptim(unsigned int exp_nbr)
   optimum.setDim(1);
   optimum.setAlpha(fixedVars.n);
   if (silent == false) showBestResults(exp_nbr);
-  
+
   // Save this as the best result inter cryptosystems
   global_optimum = optimum;
 
@@ -247,18 +247,18 @@ void PIROptimizer::findAlpha(unsigned int d, unsigned int alpha_min, unsigned in
   // Number of bits that can be absorbed by a ciphertext for our parameters
   long abs_bit;
   // If aggregation is done, try to use all plaintext space
-  unsigned int minimum_reasonable_alpha = getMinAlpha(); 
+  unsigned int minimum_reasonable_alpha = getMinAlpha();
   // Iterate on possible aggregation values
   for (unsigned int current_alpha = alpha_min ; current_alpha <= alpha_max ; current_alpha+=minimum_reasonable_alpha)
   {
     // In first iteration current_alpha=0 is treated as 1 (i.e. no aggregation)
-    computeOptimVars(current_alpha, d, vars); 
-    
+    computeOptimVars(current_alpha, d, vars);
+
     // If no bits can be absorbed for this choice ignore it
     abs_bit = crypto->getPublicParameters().getAbsorptionBitsize();
     if(abs_bit <= 0)
     {
-      cout << "PIROptimizer: Unusable cryptoparams, ignoring them" << endl; 
+      cout << "PIROptimizer: Unusable cryptoparams, ignoring them" << endl;
       break;
     }
     // Write test result to output file
@@ -275,10 +275,10 @@ void PIROptimizer::findAlphaDicho(unsigned int inf, unsigned int sup, unsigned i
   {
     unsigned int max_alpha_bound = 0;
 		if (fixedVars.n < (sup * min_alpha))
-			max_alpha_bound = fixedVars.n;  
+			max_alpha_bound = fixedVars.n;
 
-		else 
-			max_alpha_bound = min(fixedVars.alphaMax, max(kalphaBound, sup * min_alpha)); 
+		else
+			max_alpha_bound = min(fixedVars.alphaMax, max(kalphaBound, sup * min_alpha));
 
 		findAlpha(d, inf * min_alpha, max_alpha_bound, vars, exp_nbr);
 		return;
@@ -291,7 +291,7 @@ void PIROptimizer::findAlphaDicho(unsigned int inf, unsigned int sup, unsigned i
   //Write test restult to output file.
   OptimService::writeTestCurrentResult(1, sup*getMinAlpha(), alpha_bound*getMinAlpha(), inf*getMinAlpha(), sup*getMinAlpha(), d, exp_nbr, vars);
 
-  if(val == -1) {  
+  if(val == -1) {
     findAlphaDicho(alpha_bound, sup, d, exp_nbr, vars);
     return;
   }
@@ -310,17 +310,17 @@ int PIROptimizer::slop(unsigned int alphaMul, unsigned int inf, unsigned int sup
   // ten decreasings tests take the best
   // compare the two bests to determine the slope
   // each side must have alphaMul+-1 at least
-  vright = computeOptimVars((alphaMul + 1) * minalpha, d, vars); 
+  vright = computeOptimVars((alphaMul + 1) * minalpha, d, vars);
   for (unsigned int i = 1 ; i <= 10 ; i++)
   {
     vtmp = computeOptimVars((alphaMul + 1 + i * deltaright) * minalpha, d, vars);
-    if (vtmp <= vright) vright = vtmp; 
+    if (vtmp <= vright) vright = vtmp;
   }
-  vleft = computeOptimVars((alphaMul - 1) * minalpha, d, vars); 
+  vleft = computeOptimVars((alphaMul - 1) * minalpha, d, vars);
   for (unsigned int i = 1 ; i <= 10 ; i++)
   {
     vtmp = computeOptimVars((alphaMul - 1 - i * deltaleft) * minalpha, d, vars);
-    if (vtmp <= vleft) vleft = vtmp; 
+    if (vtmp <= vleft) vleft = vtmp;
   }
 
   return (vright < vleft - 10e-8) ? -1 : 1 ;
@@ -333,14 +333,14 @@ int PIROptimizer::slop(unsigned int alphaMul, unsigned int inf, unsigned int sup
  * 	- unsigned int n: the number of elements
  * 	- unsigned int alpha: the aggregation value
  * 	- unsigned int d: the dimension
- * 	- unsigned int *dn: computed dimension sizes (output) 
+ * 	- unsigned int *dn: computed dimension sizes (output)
  **/
 void PIROptimizer::getDimSize(unsigned int n, unsigned int alpha, unsigned int d, unsigned int *dn)
 {
 
   unsigned int prod = 1, j = 0;
 
-  // Elements in the database after the aggregation 
+  // Elements in the database after the aggregation
   unsigned int new_n = ceil(static_cast<double>(n)/static_cast<double>(alpha)); //PAtch tres sale à reprendre
   // Dimension sizes. Product must be > n/alpha
   unsigned int factors[d];
@@ -348,7 +348,7 @@ void PIROptimizer::getDimSize(unsigned int n, unsigned int alpha, unsigned int d
   // Lower bound on the dimensions sizes needed. Correct only if n/alpha is a d-power.
   for (unsigned int i = 0 ; i < d ; i++) factors[i] = floor(pow(new_n,1./d));
 
-  // If n/alpha is not a d-power 
+  // If n/alpha is not a d-power
   if (static_cast<double>(factors[0]) != pow(new_n, static_cast<double>(1.0 /  static_cast<double>(d))) )
   {
     // Increment each factor by one until the product of the dimension sizes is above n/alpha
@@ -385,7 +385,7 @@ double PIROptimizer::getSendCost(double Tupc, double Tdos, unsigned int nbc, uns
   // Time needed to send the query
   double SenQ = 0.0;
 
-  // Sum the times needed for the subqueries of each dimension in the recursion 
+  // Sum the times needed for the subqueries of each dimension in the recursion
   for (unsigned int i = 0 ; i < d ; i++)
   {
     // For a given dimension time = size / throughput and size = (nb_elements * size_of_an_element)
@@ -411,7 +411,7 @@ double PIROptimizer::getReplyGenCost(unsigned int alpha, unsigned int d, unsigne
   long double prod, GenR = 0;
   uint64_t plaintext_nbr_post_ntt, plaintext_nbr_pre_ntt;
   bool initialprecomputationdone = INITIAL_PRECOMPUTATION_DONE;
-  
+
   // In order to compute absorption size we must define it first
   crypto->setandgetAbsBitPerCiphertext(dn[0]);
 
@@ -420,18 +420,18 @@ double PIROptimizer::getReplyGenCost(unsigned int alpha, unsigned int d, unsigne
     // Compute how many elements has the intermediate database
     prod = 1;
     for (unsigned int j = i ; j < d ; j++)
-    { 
+    {
       prod *= dn[j];
     }
 
     // Compute how large they are
-    plaintext_nbr_post_ntt = ceil((double) eltSize(alpha,i) / (double) crypto->getPublicParameters().getAbsorptionBitsize(i)); 
-    plaintext_nbr_pre_ntt = ceil((double) eltSize(alpha,i) / (double) crypto->getPublicParameters().getCiphertextBitsize()/2); 
+    plaintext_nbr_post_ntt = ceil((double) eltSize(alpha,i) / (double) crypto->getPublicParameters().getAbsorptionBitsize(i));
+    plaintext_nbr_pre_ntt = ceil((double) eltSize(alpha,i) / (double) crypto->getPublicParameters().getCiphertextBitsize()/2);
 
-    
+
     // Consider absorption cost
     GenR += prod * plaintext_nbr_post_ntt * getAbs1PlaintextTime(crypto);
-    
+
     // And potentially precomputation cost
     if (i > 0 || initialprecomputationdone == false)
     {
@@ -454,9 +454,9 @@ double PIROptimizer::eltSize(unsigned int alpha, unsigned int i)
 {
   if (i == 0)
   {
-    return static_cast<double>(fixedVars.l * alpha); 
+    return static_cast<double>(fixedVars.l * alpha);
   }
-  return ceil( static_cast<double>(eltSize(alpha, i - 1) /  Tp(i-1) )) * Tcr(i-1); 
+  return ceil( static_cast<double>(eltSize(alpha, i - 1) /  Tp(i-1) )) * Tcr(i-1);
 }
 
 double PIROptimizer::Tp(unsigned int i)
@@ -507,18 +507,18 @@ inline double PIROptimizer::Tcq(unsigned i)
  **/
 double PIROptimizer::getDecCost(unsigned int d, crypto_ptr crypto)
 {
-  PIRParameters pirParams; //Works for d = 1 
+  PIRParameters pirParams; //Works for d = 1
   pirParams.d = 1;
   pirParams.alpha = 1;
   unsigned int chunks = 1;
   double start, stop, elapsed_time = 0;
 
   // Needed for calls to getAbsorptionBitsize
-  crypto->setandgetAbsBitPerCiphertext(1); // Set internally best absorption possible 
-  
+  crypto->setandgetAbsBitPerCiphertext(1); // Set internally best absorption possible
+
   // Use a special function to generate a ciphertext to be sure its decryption cost is average
   char* encrypted_data = (char*) crypto->encrypt_perftest();
-  PIRReplyExtraction_internal replyExt(pirParams,*crypto); 
+  PIRReplyExtraction_internal replyExt(pirParams,*crypto);
 
   shared_queue<char*> clearChunks("clear_chunks");
 
@@ -571,11 +571,11 @@ double PIROptimizer::getReceiveCost(unsigned int alpha, double Tups, double Tdoc
   //{
   //  SendR = ceil(SendR / Tp(i)) * Tcr(i);
   //}
-  //SendR /= min(Tups/nbc, Tdoc); 
+  //SendR /= min(Tups/nbc, Tdoc);
   //
   //return SendR;
 
-  // eltSize computes how db elements grow with recursion. 
+  // eltSize computes how db elements grow with recursion.
   // Reply size is what would be the element size for the d-th recursion (rec levels start at 0)
   return eltSize(alpha,d)/min(Tups/nbc, Tdoc);
 }
@@ -605,7 +605,7 @@ void PIROptimizer::getAbsAndPreCachesFromServer(boost::asio::ip::tcp::socket& s,
 
 #ifdef DEBUG
     std::cout << "Optimizer: File contents size " << file_content_size << std::endl;
-#endif 
+#endif
 
     char file_content[file_content_size + 1];
     file_content_size = read(s, boost::asio::buffer(file_content, file_content_size));
@@ -616,8 +616,8 @@ void PIROptimizer::getAbsAndPreCachesFromServer(boost::asio::ip::tcp::socket& s,
   catch(std::exception const& ex)
   {
     cout << "Optimizer: No server, using reference values for " << crypto_system->toString() << endl;
-    abs_cache.clear(); 
-    precompute_cache.clear(); 
+    abs_cache.clear();
+    precompute_cache.clear();
 
     set<string> crypto_params_set;
     crypto_system->getAllCryptoParams(crypto_params_set);
@@ -691,7 +691,7 @@ double PIROptimizer::getGenQueryCost(unsigned int d, unsigned int *dn)
  **/
 double PIROptimizer::getQueryElemGenCost(unsigned int d, crypto_ptr crypto)
 {
-  double start, stop; 
+  double start, stop;
   double elapsed_time = 0;
   unsigned int query_elts_nbr = 0;
   PIRParameters pirParams;
@@ -703,9 +703,9 @@ double PIROptimizer::getQueryElemGenCost(unsigned int d, crypto_ptr crypto)
     pirParams.n[i] = 1;
 
   // Needed for calls to getAbsorptionBitsize
-  crypto->setandgetAbsBitPerCiphertext(1); // Set internally best absorption possible 
-  
-  PIRQueryGenerator_internal queryGenerator(pirParams, *crypto); 
+  crypto->setandgetAbsBitPerCiphertext(1); // Set internally best absorption possible
+
+  PIRQueryGenerator_internal queryGenerator(pirParams, *crypto);
   queryGenerator.setChosenElement(1);
 
   do{
@@ -725,21 +725,17 @@ double PIROptimizer::getQueryElemGenCost(unsigned int d, crypto_ptr crypto)
   return result;
 }
 
-const PIRParameters& PIROptimizer::getParameters()
-{
-  return pirParameters;
-}
 
 double PIROptimizer::getAbs1PlaintextTime(HomomorphicCrypto* crypto_system)
 {
-  bool shortversion = true; 
+  bool shortversion = true;
   return abs_cache[currentPublicParams->getSerializedParams(shortversion)];
 }
 
 
 double PIROptimizer::getPrecompute1PlaintextTime(HomomorphicCrypto* crypto_system)
 {
-  bool shortversion = true; 
+  bool shortversion = true;
   return precompute_cache[currentPublicParams->getSerializedParams(shortversion)];
 }
 
@@ -750,7 +746,7 @@ double PIROptimizer::getPrecompute1PlaintextTime(HomomorphicCrypto* crypto_syste
 unsigned int PIROptimizer::getMinAlpha()
 {
   double r = ceil(Tp(0) / static_cast<double>(fixedVars.l));
-  r = (r > fixedVars.n) ? fixedVars.n : r; 
+  r = (r > fixedVars.n) ? fixedVars.n : r;
   unsigned ret = (r < 1.0) ? 1 : unsigned(r);
 
 	/*No limit for agregation*/
@@ -769,7 +765,7 @@ unsigned int PIROptimizer::getMaxAlpha()
 
 /**
  * Given the fixed vars and the choices done in the optimize loop, estimate costs.
- * If total cost is better than the previus optimum, replace it.  
+ * If total cost is better than the previus optimum, replace it.
  * Return total cost of the PIR retrieval (given the fitness method in vars).
  **/
 double PIROptimizer::computeOptimVars(unsigned int alpha, unsigned int d, OptimVars& vars)
@@ -783,19 +779,19 @@ double PIROptimizer::computeOptimVars(unsigned int alpha, unsigned int d, OptimV
   //Save alpha and d values.
   vars.setAlpha(alpha);
   vars.setDim(d);
-  
+
   crypto->setandgetAbsBitPerCiphertext(dn[0]);
 
 
   // Get costs for query generation, emission, reply generation, reception, and decryption
   vars.setGenQ(getGenQueryCost(d, dn));
   vars.setSendQ(getSendCost(fixedVars.Tupc, fixedVars.Tdos, nbc, d, dn));
-  vars.setGenR(getReplyGenCost(alpha, d, dn)); 
-  vars.setSendR(getReceiveCost(alpha, fixedVars.Tups, fixedVars.Tdoc, nbc, d)); 
-  vars.setDecR(getDecryptCost(alpha, d)); 
+  vars.setGenR(getReplyGenCost(alpha, d, dn));
+  vars.setSendR(getReceiveCost(alpha, fixedVars.Tups, fixedVars.Tdoc, nbc, d));
+  vars.setDecR(getDecryptCost(alpha, d));
 
   // Decide whether this test is better than the optimum. If so replace it.
-  analyseResult(alpha, d, vars); 
+  analyseResult(alpha, d, vars);
 
   // Return total cost of the PIR retrieval (given the fitness method in vars)
   return vars.getValue();
@@ -876,9 +872,9 @@ void PIROptimizer::showBestResults(unsigned int i)
 
 void PIROptimizer::getPreComputedData(HomomorphicCrypto* crypto)
 {
-  std::string	fdec_path(OptimService::folderName + OptimService::fileName + crypto->toString() 
+  std::string	fdec_path(OptimService::folderName + OptimService::fileName + crypto->toString()
       + OptimService::decFileExtension);
-  std::string	fenc_path(OptimService::folderName + OptimService::fileName + crypto->toString() 
+  std::string	fenc_path(OptimService::folderName + OptimService::fileName + crypto->toString()
       + OptimService::encFileExtension);
 
   decrypt_cache.clear();
@@ -888,7 +884,7 @@ void PIROptimizer::getPreComputedData(HomomorphicCrypto* crypto)
   crypto->getAllCryptoParams(crypto_params_set);
 
   //if (OptimService::verifyOptimData(crypto_params_set, fdec_path, fenc_path))
-  if (OptimService::fileOutdated(crypto->toString(), OptimService::encFileExtension) || 
+  if (OptimService::fileOutdated(crypto->toString(), OptimService::encFileExtension) ||
       OptimService::fileOutdated(crypto->toString(), OptimService::decFileExtension) )
   {
     cout << "PIROptimizer:: Computing cache data for " <<  crypto->toString() << ", this can take a while..." << endl;
@@ -912,18 +908,18 @@ void PIROptimizer::computeOptimData(set<string> &crypto_params_set )
   std::string file_path(OptimService::folderName + OptimService::fileName + crypto->toString());
   for (auto crypto_param : crypto_params_set)
   {
-    cout << "PIROptimizer: Encrypt cache generation for " << crypto_param << " " << i++ 
+    cout << "PIROptimizer: Encrypt cache generation for " << crypto_param << " " << i++
       << "/" << crypto_params_nbr << "." << flush;
     crypto->setNewParameters(crypto_param);
     cout << "." << endl;
 
     encrypt_cache[crypto_param] = getQueryElemGenCost(1, crypto);
-    
+
     std::ostringstream out;
     out << std::setprecision(kPrecision) << encrypt_cache[crypto_param];
     optim_data2write += crypto_param + " " + out.str() + "\n";
-  }	
-  if(OptimService::writeOptimDataBuffer(optim_data2write, file_path+OptimService::encFileExtension)) 
+  }
+  if(OptimService::writeOptimDataBuffer(optim_data2write, file_path+OptimService::encFileExtension))
   {
     std::cout << "PIROptimizer: Error when writing optimization data, aborting." << std::endl;
     exit(1);
@@ -934,18 +930,18 @@ void PIROptimizer::computeOptimData(set<string> &crypto_params_set )
   // Generate the decryption performance cache
   for (auto crypto_param : crypto_params_set)
   {
-    cout << "PIROptimizer: Decrypt cache generation for " << crypto_param << " " << i++ 
+    cout << "PIROptimizer: Decrypt cache generation for " << crypto_param << " " << i++
       << "/" << crypto_params_nbr << "." << flush;
     crypto->setNewParameters(crypto_param);
     cout << "." << endl;
 
     decrypt_cache[crypto_param] = getDecCost(1, crypto);
-    
+
     std::ostringstream out;
     out << std::setprecision(kPrecision) << decrypt_cache[crypto_param];
     optim_data2write += crypto_param + " " + out.str() + "\n";
-  }	
-  if(OptimService::writeOptimDataBuffer(optim_data2write, file_path+OptimService::decFileExtension)) 
+  }
+  if(OptimService::writeOptimDataBuffer(optim_data2write, file_path+OptimService::decFileExtension))
   {
     std::cout << "PIROptimizer: Error when writing optimization data, aborting." << std::endl;
     exit(1);
@@ -1024,7 +1020,7 @@ void PIROptimizer::getNetworkInfos(FixedVars& fixedVars, boost::asio::ip::tcp::s
   start = omp_get_wtime();
   for (int i = 0 ; i < loop ; i++) write(s, boost::asio::buffer(msg, MEGA_BYTE));
   end = omp_get_wtime();
-  
+
   // Ignore it if value was forced
   if (fixedVars.Tupc != 0)
   {
@@ -1033,7 +1029,7 @@ void PIROptimizer::getNetworkInfos(FixedVars& fixedVars, boost::asio::ip::tcp::s
   else
   {
     fixedVars.Tupc = (loop /(end - start)) * 8 * MEGA_BYTE;
-    fixedVars.Tdos = fixedVars.Tupc;  
+    fixedVars.Tdos = fixedVars.Tupc;
 
     cout << "Optimizer: Upload speed test gives " << fixedVars.Tupc << " bits/s" << endl;
   }
