@@ -27,6 +27,8 @@ PIRClientSimple::PIRClientSimple(boost::asio::io_service& ios, ClientParams para
   clientParams(params),
   fixedVars(vars),
   optimum(vars),
+  cryptoMethod(NULL),
+  threaded(false),
   no_pipeline_mode(false)
 {
   replyWriter.setdontWrite(params.dontwrite);
@@ -37,19 +39,23 @@ PIRClientSimple::PIRClientSimple(boost::asio::io_service& ios, ClientParams para
 
 void PIRClientSimple::joinAllThreads()
 {
-  replyExt->replyThread.join();
-  replyWriter.join();
+  if(threaded){
+      replyExt->replyThread.join();
+      replyWriter.join();
+  }
 }
 
 PIRClientSimple::~PIRClientSimple()
 {
   joinAllThreads();
-  delete cryptoMethod;
+  if (cryptoMethod != NULL)
+      delete cryptoMethod;
 }
 
 void PIRClientSimple::connect()
 {	
 	using namespace boost::asio::ip;
+    threaded = true;
 
 	try
 	{
@@ -309,6 +315,7 @@ void PIRClientSimple::startProcessQuery()
 
 	uploadWorker(queryGen);
 }
+
 void sleepForBytes(unsigned int bytes) {
 #ifdef UPLOAD_LIMIT
 	uint64_t seconds=(bytes*8)/UPLOAD_LIMIT;
@@ -320,6 +327,7 @@ void sleepForBytes(unsigned int bytes) {
 	  nanosleep(&req,&rem);
 #endif
 }
+
 /**
  *  Upload query to the server et delete its parts from the shared query queue.
  *  Exception :
@@ -432,6 +440,32 @@ void PIRClientSimple::downloadWorker(PIRReplyExtraction_internal& turlututu)
 void PIRClientSimple::setChosenElement(uint64_t choice)
 {
 	chosenElement = choice;
+}
+
+void PIRClientSimple::getBlock(uint64_t id){
+    if (id > catalog.getFilesNum())
+        return;
+    setChosenElement(id);
+    startProcessQuery();
+    startProcessResult();
+    joinAllThreads();
+}
+
+uint64_t PIRClientSimple::getRandomBlock(){
+    uniform_int_distribution<int> d(0,catalog.getFilesNum());
+    random_device rd("/dev/urandom");
+    
+    uint64_t chosen = d(rd);
+    setChosenElement(chosen);
+    startProcessQuery();
+    startProcessResult();
+    joinAllThreads();
+
+    return chosen;
+}
+
+string PIRClientSimple::getFileName(uint64_t num){
+    return catalog.getFileName(num);
 }
 
 //void PIRClientSimple::setPIRParameters(PIRParameters& pirParameters)

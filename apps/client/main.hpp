@@ -20,6 +20,10 @@
 
 #include <signal.h>
 
+#include <openssl/aes.h>
+#include <random>
+#include <cmath>
+
 #include <boost/asio.hpp>
 #include <boost/program_options.hpp>
 
@@ -29,6 +33,7 @@
 
 void sighandler(int sig_num);
 void download(PIRClientSimple&);
+void upload(PIRClientSimple&);
 
 using namespace std;
 namespace po = boost::program_options;

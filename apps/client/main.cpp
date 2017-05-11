@@ -304,22 +304,113 @@ void download(PIRClientSimple& client){
   client.processPIRParams();
 
   /*User chooses the file here.*/
-  client.chooseFile();
-  
+  // client.chooseFile();
+  cout<<"Enter a file num:";
+  uint64_t fNum;
+  cin>>fNum;
   double start = omp_get_wtime();
+  client.getBlock(fNum);
+  
   
   
   /* Asynchronously generate and send the request
      separately in two threads*/
-  client.startProcessQuery();
+  // client.startProcessQuery();
   /* Receive asynchronously the response from the server and
      asynchronously writes it */
-  client.startProcessResult();
+  // client.startProcessResult();
 
-  client.joinAllThreads();
+  // client.joinAllThreads();
   double end = omp_get_wtime();
   cout << "CLI: Query RTT was " << end-start << " seconds" << endl;
 
+}
+
+void upload(PIRClientSimple& client){
+  cout<<"Enter filename: ";
+  string fname;
+  cin >> fname;
+  cout<<"entered fname = " << fname << endl;
+  uint64_t seed;
+  uniform_int_distribution<uint64_t> d(0,pow(2,63));
+  random_device rd("/dev/urandom");
+  seed = d(rd);
+  cout<<"seed: "<<seed<<endl;
+  // Start by connecting to the PIR server
+  client.connect();
+
+  // Downloads the file catalog
+  client.downloadCatalog();
+
+  // Get from the server whether we are in client-driven mode or not
+  client.rcvPIRParamsExchangeMethod();
+
+  // Use the optimizer to choose best parameters 
+  // (returns immediately in server-driven mode)
+  client.optimize();  
+
+  // Send PIR and cryptographic parameters to the server in client-driven mode
+  // and receive and process them in server-driven mode
+  client.processCryptoParams();
+  client.processPIRParams();
+
+  // ifstream file (fname, ios::out | ios::binary);
+  FILE* file = fopen(fname.c_str(), "r+");
+  if (file == NULL)
+    return;
+  fseek(file, 0, SEEK_END);
+  long int size = ftell(file);
+  fclose(file);
+  file = fopen(fname.c_str(),"r+");
+  unsigned char buff[1024*1024];
+  while(size > 0){
+    int bytes_read = fread(buff, sizeof(unsigned char), 1024*1024, file);
+    size -= bytes_read;
+    // cout<<buff<<endl;
+    // now encrypt buff, (complicated?)
+
+    // now we need a random block from the server.
+    uint64_t serverBlock = client.getRandomBlock();
+    // ifstream file2("reception/"+client.getFileName(serverBlock), ios::out |
+    // ios::binary);
+    FILE* file2 = fopen(("reception/"+client.getFileName(serverBlock)).c_str(),
+     "r+");
+    unsigned char tmpBuff[1024*1024];
+    bytes_read = fread(tmpBuff, sizeof(unsigned char), 1024*1024, file2);
+    // file2.read(tmpBuff, 1024*1204);
+
+
+    unsigned char xorBuff[1024*1024];
+    for (int i = 0; i < 1024*1024; i++){
+        xorBuff[i] = buff[i] ^ tmpBuff[i];
+    }
+    // cout<<"buff:"<<endl;
+    // printf("0x");
+    // for (int i = 0; i < 20; i++){
+    //   printf("%02x", buff[i]);
+    // }
+    // cout<<endl;
+    // cout<<"tmpBuff:"<<endl;
+    // printf("0x");
+    // for (int i = 0; i < 20; i++){
+    //   // printf("%02x", (unsigned char)tmpBuff[i]);
+    //   printf("%02x", tmpBuff[i]);
+    // }
+    // cout<<endl;
+    // cout<<"xorBuff:"<<endl;
+    // printf("0x");
+    // for (int i = 0; i < 20; i++){
+    //   // printf("%02x", (unsigned char)xorBuff[i]);
+    //   printf("%02x", xorBuff[i]);
+    // }
+    // cout<<endl;
+    fclose(file2);
+    memset(buff, 0, sizeof buff);
+    memset(tmpBuff, 0, sizeof tmpBuff);
+    memset(xorBuff, 0, sizeof xorBuff);
+  }
+  fclose(file);
+  // file.close();
 }
 
 int main(int argc, char** argv) 
@@ -407,7 +498,8 @@ int main(int argc, char** argv)
   }
 
   // create main menu:
-  do{
+  bool cont = true;
+  while(cont){
     // If we are not in dry-run mode create client and controller
     PIRClientSimple client(ios, clientParams, fixedVars);
     PIRController controller(client);
@@ -423,13 +515,19 @@ int main(int argc, char** argv)
     cin>>input;
     cin.clear();
     cin.ignore(10000,'\n');
-    if (input  == 2){
-      download(client);
+    switch(input){
+      case 1:
+        upload(client);
+        break;
+      case 2:
+        download(client);
+        break;
+      case 3:
+        cont = false;
+        break;
     }
-    else if (input == 3)
-      break;
 
-  }while(true);
+  }
   cout << "CLI: Exiting..." << endl;
 
   return EXIT_SUCCESS;
