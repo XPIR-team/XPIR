@@ -169,6 +169,11 @@ mpz_t* paillier_pubkey::getg()
   return &g;
 }
 
+int paillier_pubkey::getbits()
+{
+  return bits;
+} 
+
 // Simple setters
 void paillier_pubkey::setinit_s(int init_s_)
 {
