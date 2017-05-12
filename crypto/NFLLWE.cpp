@@ -117,6 +117,7 @@ void  NFLLWE::setNewParameters(unsigned int polyDegree_, unsigned int aggregated
 // *********************************************************
 // Getters
 // *********************************************************
+poly64* NFLLWE::getsecretKey() { return secretKey; }
 unsigned int NFLLWE::getpolyDegree() { return polyDegree; }
 
 // *********************************************************

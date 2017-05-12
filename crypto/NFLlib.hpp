@@ -342,7 +342,55 @@ inline void NFLlib::addmodPoly(poly64 rop, poly64 op1,poly64 op2) {
 }
 
 
+// Apply submod to all the coefficients of a polynomial
+inline void NFLlib::submodPoly(poly64 rop, poly64 op1,poly64 op2) {
+  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) 
+  {
+    for(unsigned i=0;i<polyDegree;i++)
+    {
+      rop[i]=submod(op1[i],op2[i],moduli[currentModulus]);
+    }
+    rop+=polyDegree;
+    op1+=polyDegree;
+    op2+=polyDegree;
+  }
+}
 
+
+// Apply mulmod to all the coefficients of a polynomial
+// This is a polynomial multiplication mod X**n+1 iff the operands
+// have been processed through nttAndPowPhi
+inline void NFLlib::mulmodPolyNTT(poly64 rop, poly64 op1, poly64 op2)
+{
+  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {  
+    for (unsigned i = 0 ; i < polyDegree ;i++)
+    {
+      rop[i] = mulmod(op1[i],op2[i],moduli[currentModulus]);
+    }
+    rop+=polyDegree;
+    op1+=polyDegree;
+    op2+=polyDegree;
+  }
+}
+
+
+// Apply mulmodShoup to all the coefficients of a polynomial (much faster)
+// This is a polynomial multiplication mod X**n+1 iff the operands
+// have been processed through nttAndPowPhi
+// op2prime must be a polynomial with op2 coefficients converted with Shoup's precomputation
+inline void NFLlib::mulmodPolyNTTShoup(poly64 rop, poly64 op1,poly64 op2,poly64 op2prime)
+{
+  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
+    //#pragma omp parallel for
+    for (unsigned i = 0 ; i < polyDegree ;i++) {
+      rop[i] = mulmodShoup(op1[i],op2[i],op2prime[i],moduli[currentModulus]);
+    }
+    rop+=polyDegree;
+    op1+=polyDegree;
+    op2+=polyDegree;
+    op2prime+=polyDegree;
+  }
+}
 
 
 // Same as mulmodPolyNTT but with fused multiplication and addition
@@ -359,6 +407,21 @@ inline void NFLlib::mulandaddPolyNTT(poly64 rop, poly64 op1,poly64 op2)
   }
 }
 
+
+// Same as mulmodPolyNTTShoup but with fused multiplication and addition
+inline void NFLlib::mulandaddPolyNTTShoup(poly64 rop, poly64 op1,poly64 op2,poly64 op2prime)
+{
+  for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
+  //#pragma omp parallel for
+    for (unsigned i = 0 ; i < polyDegree ;i++) {
+      mulandaddShoup(rop[i],op1[i],op2[i],op2prime[i],moduli[currentModulus]);
+    }
+    rop+=polyDegree;
+    op1+=polyDegree;
+    op2+=polyDegree;
+    op2prime+=polyDegree;
+  }
+}
 
 
 
@@ -564,6 +627,27 @@ inline void NFLlib::invnttAndPowInvPhi(poly64 op)
 
 
 
+
+// *********************************************************
+// Pre-computation functions
+// *********************************************************
+
+// Pre-compute quotients for Shoup's multiplication for all the coefficients of a polynomial
+inline poly64 NFLlib::allocandcomputeShouppoly(poly64 x)
+{
+  poly64 res = (poly64) malloc(polyDegree*nbModuli*sizeof(uint64_t));
+  poly64 res_orig = res;
+  for (unsigned short currentModulus = 0; currentModulus < nbModuli ; currentModulus++)
+  {
+    for (unsigned int i = 0; i < polyDegree; i++)
+    {
+      res[i] = ((uint128_t) x[i] << 64) / moduli[currentModulus];
+    }
+    res+=polyDegree;
+    x+=polyDegree;
+  }
+  return res_orig;
+}
 
 
 // All the other functions are in the cpp file. A more carefull study should be done to see what needs inlining and what not.
