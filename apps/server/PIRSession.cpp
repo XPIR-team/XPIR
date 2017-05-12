@@ -586,6 +586,12 @@ void PIRSession::exitWithErrorMessage(string funcName, string message)
 }
 
 
+// Used by the PIRServer for garbage collection
+bool PIRSession::isFinished()
+{
+  return finished;
+}
+
 // Destructor
 PIRSession::~PIRSession()
 {
