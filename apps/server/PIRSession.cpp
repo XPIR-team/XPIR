@@ -17,6 +17,10 @@
 
 #include "PIRSession.hpp"
 #include "pir/replyGenerator/PIROptimizer.hpp"
+#include <openssl/crypto.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
 
 #define NDSS_UPLOAD_SPEED 100000000UL
 PIRSession::pointer PIRSession::create(boost::asio::io_service& ios)
@@ -389,6 +393,7 @@ void PIRSession::downloadWorker()
 {
   double start = omp_get_wtime();
   unsigned int msg_size = 0;
+  cout << "THIS IS DOWNLOAD WORKER" << endl;
 
   // Allocate an array with d dimensions with pointers to arrays of n[i] lwe_query elements 
   generator->initQueriesBuffer();
@@ -462,6 +467,8 @@ void PIRSession::downloadWorker()
 
   // Output we are done
   writeWarningMessage(__FUNCTION__, "done.");
+
+  cout << "download worker done" << endl;
 }
 
 
@@ -523,6 +530,31 @@ void PIRSession::uploadWorker()
   cout << "PIRSession: Ciphertext bytesize is " << byteSize << endl;
 #endif
 
+
+  // Setup signature
+  EVP_MD_CTX *mdctx = NULL;
+  unsigned char *sig = NULL;
+
+  // Load private key
+  FILE *fp = fopen("/tmp/ec-key.privkey", "r");
+  if (!fp) {
+    exitWithErrorMessage(__FUNCTION__, "Could not open ec-key");
+  }
+  EVP_PKEY *privkey = PEM_read_PrivateKey(fp, NULL, NULL, NULL); 
+  fclose(fp);
+
+  if (!(mdctx = EVP_MD_CTX_create())) {
+    exitWithErrorMessage(__FUNCTION__, "Error in EVP_MD_CTX_create");
+    return;
+  }
+
+  if (EVP_DigestSignInit(mdctx, NULL, EVP_sha256(), NULL, privkey) != 1) {
+    exitWithErrorMessage(__FUNCTION__, "Error in DigestSignInit");
+    return;
+  }
+
+   
+  
   try
   {
     // Pointer for the ciphertexts to be sent
@@ -539,8 +571,12 @@ void PIRSession::uploadWorker()
       
       // Send it
       //int byteSent=sessionSocket.send(boost::asio::buffer(ptr, byteSize));
-      if (write(sessionSocket,boost::asio::buffer(ptr, byteSize)) <= 0)
+      if (EVP_DigestSignUpdate(mdctx, ptr, byteSize) != 1) {
+        exitWithErrorMessage(__FUNCTION__,"Error in DigestSignUpdate");
+      }
+      if (write(sessionSocket,boost::asio::buffer(ptr, byteSize)) <= 0) {
         exitWithErrorMessage(__FUNCTION__,"Error sending request" );
+      }
 	  	totalbytesent+=byteSize;
 #ifdef NDSS_UPLOAD_SPEED
       sleepForBytes(byteSize);
@@ -550,8 +586,35 @@ void PIRSession::uploadWorker()
       generator->repliesArray[i]=NULL;
     }
 
+    // Finalize signature
+    /* First call EVP_DigestSignFinal with a NULL sig parameter to obtain the length of the
+    *   * signature. Length is returned in slen */
+    size_t slen = 0;
+    if (EVP_DigestSignFinal(mdctx, NULL, &slen) != 1) {
+      exitWithErrorMessage(__FUNCTION__,"Error getting sig size");
+    }
+
+    /* Allocate memory for the signature based on size in slen */
+    if (!(sig = (unsigned char *)OPENSSL_malloc(slen))) {
+      exitWithErrorMessage(__FUNCTION__, "Error Openssl malloc");
+    }
+    if (EVP_DigestSignFinal(mdctx, sig, &slen) != 1) {
+      exitWithErrorMessage(__FUNCTION__, "Error getting signature");
+    }
+
+    // Print signature
+    int i;
+    printf("This is the signature: ");
+    for (i=0; i<slen; i++) {
+      printf("%02x", sig[i]);
+    }
+    printf("\n");
+
+
     // When everythind is send close the socket
     sessionSocket.close();
+    OPENSSL_free(sig);
+    EVP_MD_CTX_destroy(mdctx);
   }
   // If there was a problem sending the reply
   catch (std::exception const& ex)

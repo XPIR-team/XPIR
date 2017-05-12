@@ -7,7 +7,7 @@ include_directories(../..)
 
 add_executable(pir_server PIRServer.cpp PIRSession.cpp ServerService.cpp main.cpp)
 
-target_link_libraries(pir_server pir ${Boost_LIBRARIES} ${GMP_LIBRARIES} pthread )
+target_link_libraries(pir_server pir ${Boost_LIBRARIES} ${GMP_LIBRARIES} ${OPENSSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES} pthread )
 
 file(COPY "../tools/check-correctness.sh" DESTINATION ".")
 file(COPY "../tools/makedb.sh" DESTINATION ".")
