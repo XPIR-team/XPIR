@@ -95,7 +95,7 @@ void PIRReplyGeneratorNFL_internal::importDataNFL(uint64_t offset, uint64_t byte
   uint64_t lastindex = 0;
 #endif
   // For global time measurement
-  double start = omp_get_wtime();double now,delta;
+  double start = omp_get_wtime();
 
   int nbruns=ceil((double)nbFiles/pirParam.alpha);
   
@@ -167,7 +167,6 @@ imported_database_t PIRReplyGeneratorNFL_internal::generateReplyGeneric(bool kee
 //  std::ifstream *is = dbhandler->openStream(0,0);
   const uint64_t nbFiles = dbhandler->getNbStream();
   const unsigned int polysize = cryptoMethod->getpolyDegree()*cryptoMethod->getnbModuli();
-  const unsigned int jumpcipher = 2*polysize / sizeof(uint64_t);
 	currentMaxNbPolys=0;
 	lwe_in_data *input = new lwe_in_data[iterations];
   lwe_cipher *resul = new lwe_cipher[iterations];
