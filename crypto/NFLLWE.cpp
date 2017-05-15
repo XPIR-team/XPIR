@@ -565,7 +565,6 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
 {
   using namespace std;
   unsigned int p_size, params_nbr = 0;
-  string k_str  = to_string(k);
 
   for (unsigned int degree = kMinPolyDegree ; degree <= kMaxPolyDegree; degree <<= 1)
   {
