@@ -301,7 +301,6 @@ PIRReplyGeneratorGMP::generateReply(mpz_t *queries,
 		int dimension,
 		mpz_t* result) 
 {
-  int affichages = 1;
   unsigned int data_size =  pirParam.n[dimension];
 	mpz_t replyTmp;
   int init_s = (*((PaillierPublicParameters*) &(cryptoMethod->getPublicParameters()))).getPubKey()->getinit_s();
