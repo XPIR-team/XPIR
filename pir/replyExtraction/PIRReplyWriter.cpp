@@ -122,7 +122,6 @@ void PIRReplyWriter::writeFileSecurely(uint64_t element, DESC catalog, uint64_t 
     while (leftChars != 0) 
     {
       uint64_t writtenchars = 0;
-      uint64_t current_bytesskipped = 0; 
 
       tmp = clearChunks.front();
       if (bytestoskip != 0)
