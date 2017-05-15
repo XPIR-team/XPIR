@@ -1012,7 +1012,6 @@ void PIROptimizer::getNetworkInfos(FixedVars& fixedVars, boost::asio::ip::tcp::s
 {
   double start = 0, end=0, loop = 1;
   char *msg = (char *) malloc(MEGA_BYTE+4);
-  unsigned int read_size = 0;
   memset(msg, 1, MEGA_BYTE);
 
   size_t cmd = SPEED;
