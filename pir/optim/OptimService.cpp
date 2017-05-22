@@ -211,6 +211,8 @@ void OptimService::writeConfigFile(unsigned int alpha, unsigned int alphaMul, un
   file.close();
 }
 
+unsigned int OptimService::getNumberOfLines(std::ifstream& f)
+{
   unsigned int i = 0;
   string line;
 
