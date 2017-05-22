@@ -23,6 +23,8 @@ link_directories(${Boost_LIBRARY_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
 find_package(GMP 6 REQUIRED)
 find_package(MPFR 3.1.2 REQUIRED)
+find_library(CRYPTO_LIB libcrypto.so REQUIRED)
+find_package(OpenSSL 1.0.1 REQUIRED)
 
 include_directories("/opt/local/include")
 

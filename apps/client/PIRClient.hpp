@@ -66,6 +66,7 @@ struct ClientParams
 class PIRClientSimple
 {
   private:
+    bool threaded;
     PIRReplyExtraction_internal *replyExt;
     ClientParams clientParams;
     FixedVars fixedVars;
@@ -109,6 +110,9 @@ class PIRClientSimple
     void startProcessQuery();
     void startProcessResult();
 
+    void getBlock(uint64_t);
+    uint64_t getRandomBlock();
+    string getFileName(uint64_t num);
     void setChosenElement(uint64_t choice);
     void joinAllThreads();
     void no_pipeline(bool b);
