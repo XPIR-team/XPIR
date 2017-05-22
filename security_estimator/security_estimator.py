@@ -4,6 +4,7 @@ from estimator import * # import lwe estimator of Martin Albrecht
 
 from sage.rings.real_mpfr import RRtoRR
 
+import numpy as np
 import os
 import re
 import datetime
@@ -36,14 +37,14 @@ for i in range (2, len(cryptoParamsList), 6):
 print "XPIR parameters loaded\n"
 
 
-results = []
+nbrBits = []
 
 for i in range (len(n)):
     
-    nbrBits = estimate_lwe(n[i], RR(80 / RR((2 ** q[i])) ) , 2 ** q[i], skip=("mitm", "bkw", "arora-gb"))
+    security = estimate_lwe(n[i], RR(80 / RR((2 ** q[i])) ) , 2 ** q[i], skip=("mitm", "bkw", "arora-gb"))
     
-    results.append(min(nbrBits['sis']['bkz2'], nbrBits['dec']['bkz2'], nbrBits['kannan']['bkz2']))
-
+    nbrBits.append(int(np.log2(min(security['sis']['bkz2'], security['dec']['bkz2'], security['kannan']['bkz2']))) + 1)
+    
     print "estimate parameters ", i + 1, " : done"
     
 
@@ -52,7 +53,7 @@ paramsSecure = open("security_estimations.txt", 'w')
 paramsSecure.write(str(datetime.datetime.now()))
 
 paramsSecure.write("\n\n")
-paramsSecure.write("n:q:nbrBits: \n")
+paramsSecure.write("n:q:nbrBits\n")
 
 for i in range (len(n)):
     
@@ -60,7 +61,7 @@ for i in range (len(n)):
     paramsSecure.write(":")
     paramsSecure.write(str(q[i]))
     paramsSecure.write(":")
-    paramsSecure.write(str(results[i]))
+    paramsSecure.write(str(nbrBits[i]))
     paramsSecure.write("\n")
         
 paramsSecure.close()
