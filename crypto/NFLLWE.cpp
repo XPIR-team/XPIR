@@ -17,6 +17,10 @@
 
 #include "NFLLWE.hpp"
 #include <fstream> 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unistd.h>
 //#define bench
 //#define Repetition 10000
 
@@ -603,13 +607,48 @@ void NFLLWE::recomputeNoiseAmplifiers() {
 
 unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 {
-  unsigned int estimated_k = 5;//Estimate K can not be too low
+	using namespace std;
 
-  while(!checkParamsSecure(estimated_k,n,p_size)) estimated_k++; 
+//	char wd[256];  
+//	getcwd( wd, 256 );  
+//	string cwd = wd;
+//	string pathData = cwd + "/../../../../security_estimator/security_estimations.txt";
+
+//	ifstream estimations(pathData.c_str());
+	ifstream estimations("/home/neo/Documents/XPIR/security_estimator/security_estimations.txt");
+	vector<unsigned int> nParameters;
+	vector<unsigned int> qParameters;
+	vector<unsigned int> nbrBits;
+
+	string line;
+	int i(0);
+
+	while(getline(estimations,line)){
+		if(i>=3){
+			int posPoint1=line.find(':',0);
+			int posPoint2=line.find(':',posPoint1+1);
+			
+			unsigned int nData=atoi(line.substr(0,posPoint1).c_str());
+			nParameters.push_back(nData);
+
+			unsigned int qData=atoi(line.substr(posPoint1+1,posPoint2-(posPoint1+1)).c_str());
+			qParameters.push_back(qData);
+
+			unsigned int nbrBitsData=atoi(line.substr(posPoint2+1,line.size()-(posPoint2+1)).c_str());
+			nbrBits.push_back(nbrBitsData);
+		}
+		i++;
+	}
+	
+	unsigned int estimated_k(0);
+	for(int i(0); i<nbrBits.size(); i++){
+		if(n==nParameters[i] && p_size==qParameters[i]){
+			estimated_k=nbrBits[i];
+		}
+    	}
 
   return --estimated_k;
 }
-
 
 long NFLLWE::setandgetAbsBitPerCiphertext(unsigned int elt_nbr)
 {
@@ -639,19 +678,7 @@ unsigned int NFLLWE::findMaxModulusBitsize(unsigned int k, unsigned int n)
 
 bool NFLLWE::checkParamsSecure(unsigned int k, unsigned int n, unsigned int p_size)
 {
-  double p, beta, logBerr = 8, epsi, lll;
-
-  //We take an advantage of 2**(-k/2) and an attack time of 2**(k/2)
-  epsi = pow(2, -static_cast<double>(k/2));
-  //log(time) = 1.8/ log(delta) − 110 and -80 to compute processor cycles so we take pow(2, k/2) = 1.8/log(delta) - 80
-  double delta = pow(2,1.8/(k/2 + 80));
-
-  p    = pow(2, p_size) -  1;
-  beta = (p / logBerr) * sqrt(log1p( 1 / epsi) / M_PI);
-  lll  = lllOutput(n, p, delta);
-
-  // We love ugly tricks !
-  return (lll < beta);// && cout << "beta : " << beta << " p_size : " << p_size << " n :"<< n << " k : "<< k << endl;
+  return (estimateSecurity(n,p_size)<=k);
 }
 
 
