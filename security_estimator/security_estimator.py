@@ -23,13 +23,13 @@ pathScript = os.getcwd()
 path = pathScript + "/../_build/apps/server/exp/preComputeLWE.abs"
 
 
-# Chech that the data file exists
+# Check the data file exists
 if (os.path.isfile(path)):
     
     print "Please wait...\n"
     
     
-    # Open the data file which contains the XPIR parameters
+    # Open the data file which contains XPIR parameters
     with open(path, "r") as cryptoParamsFile: 
         # Read the file
         cryptoParams = cryptoParamsFile.read()
@@ -41,7 +41,7 @@ if (os.path.isfile(path)):
     n = []
     q = []
 
-    # Add the parameters of the data file in the lists
+    # Add parameters of the data file in lists
     for i in range (2, len(cryptoParamsList), 6):
     
         n.append(int(cryptoParamsList[i]))
@@ -73,7 +73,7 @@ if (os.path.isfile(path)):
     paramsSecure.write("\n\n")
     paramsSecure.write("n:q:nbrBits\n")
 
-    # Write the parameters and the numbers of bits of security in the file
+    # Write parameters and numbers of bits of security in the file
     for i in range (len(n)):
     
         paramsSecure.write(str(n[i]))
@@ -82,7 +82,7 @@ if (os.path.isfile(path)):
         paramsSecure.write(":")
         paramsSecure.write(str(nbrBits[i]))
         paramsSecure.write("\n")
- 
+    
     # Close the file 
     paramsSecure.close()
 
@@ -90,6 +90,7 @@ if (os.path.isfile(path)):
     
     
 else:
-    print "ERROR : data file that contains XPIR parameters does not find... Please run XPIR for the first time before !"
+    # If the data file of XPIR parameters does not exists please run XPIR one time.
+    print "ERROR : data file that contains XPIR parameters does not find... Please run XPIR one time before !"
 
 
