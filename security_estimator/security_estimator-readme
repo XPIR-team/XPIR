@@ -7,10 +7,10 @@ Requirements:
     * python-numpy package
 
 XPIR security estimator uses the 'Estimator for the Bit Security of LWE Instances' developped by Martin Albrecht.
-__________________________________________________________________________________________________________________________________
-                                                                                                                                  |
-To have a better security, remplace the file 'estimator.py' by the last released in 'https://bitbucket.org/malb/lwe-estimator/src'|
-                                                                                                                                  |
-To generate new security estimation run 'security_estimator.py' with sage. It will generate a new 'security_estimations.txt' file.|   
-                                                                                                                                  |
-__________________________________________________________________________________________________________________________________|
+ ____________________________________________________________________________________________________________________________________
+|                                                                                                                                    |
+| To have a better security, remplace the file 'estimator.py' by the last released in 'https://bitbucket.org/malb/lwe-estimator/src' |
+|                                                                                                                                    |
+| To generate new security estimation run 'security_estimator.py' with sage. It will generate a new 'security_estimations.txt' file. |   
+|                                                                                                                                    |
+|____________________________________________________________________________________________________________________________________|
