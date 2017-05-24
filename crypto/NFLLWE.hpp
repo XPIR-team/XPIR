@@ -40,8 +40,6 @@
 #include <gmp.h> 
 #include <unistd.h>
 
-
-
 class NFLLWE : public LatticesBasedCryptosystem
 {
 
