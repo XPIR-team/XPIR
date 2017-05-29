@@ -28,6 +28,7 @@ extern const unsigned int kMaxNbModuli;
 extern const uint64_t P64[];
 extern const unsigned int kModulusBitsize;
 extern const unsigned int kModulusRepresentationBitsize;
+extern const unsigned int kMaxAggregatedModulusBitsize;
 
 // A primitive 2**14 root of unity for each one of the moduli
 extern const uint64_t primitive_roots[];
