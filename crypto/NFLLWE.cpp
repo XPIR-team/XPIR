@@ -577,7 +577,6 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
     string param;
     p_size = findMaxModulusBitsize(k, degree);
     
-
     for (unsigned int i = 1; i * kModulusBitsize <= p_size && i * kModulusBitsize <= kMaxAggregatedModulusBitsize; i++)
     {
       param =  cryptoName + ":" + to_string(estimateSecurity(degree,i*kModulusBitsize)) + ":" + to_string(degree) + ":" + to_string(i*kModulusBitsize) ;
