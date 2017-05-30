@@ -577,9 +577,8 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
     string param;
     p_size = findMaxModulusBitsize(k, degree);
     
-    // We give a very small margin 59 instead of 60 so that 100:1024:60 passes the test
-    //for (unsigned int i = 1; i * 59 <= p_size ; i++)//(p_size > 64) && ((p_size % 64) != 0))
-    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= kMaxAggregatedModulusBitsize; i++)
+
+    for (unsigned int i = 1; i * kModulusBitsize <= p_size && i * kModulusBitsize <= kMaxAggregatedModulusBitsize; i++)
     {
       param =  cryptoName + ":" + to_string(estimateSecurity(degree,i*kModulusBitsize)) + ":" + to_string(degree) + ":" + to_string(i*kModulusBitsize) ;
       if (crypto_params.insert(param).second) params_nbr++;
@@ -653,7 +652,7 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 		}
     	}
 
-  return ++estimated_k;
+  return estimated_k;
 }
 
 long NFLLWE::setandgetAbsBitPerCiphertext(unsigned int elt_nbr)
@@ -678,7 +677,7 @@ unsigned int NFLLWE::findMaxModulusBitsize(unsigned int k, unsigned int n)
   p_size = 60;
   while (!checkParamsSecure(k,n,p_size)) p_size+=60;
 
-  return --p_size;
+  return p_size;
 }
 
 
