@@ -673,8 +673,8 @@ unsigned int NFLLWE::findMaxModulusBitsize(unsigned int k, unsigned int n)
 {
   unsigned int p_size;
   //p_size can not be too low
-  p_size = 60;
-  while (!checkParamsSecure(k,n,p_size)) p_size+=60;
+  p_size = kModulusBitsize;
+  while (!checkParamsSecure(k,n,p_size)) p_size+=kModulusBitsize;
 
   return p_size;
 }
