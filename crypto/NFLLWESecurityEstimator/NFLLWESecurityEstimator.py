@@ -139,6 +139,8 @@ if (os.path.isfile(pathNFLParameters)):
             paramsSecure.write(":")
             paramsSecure.write(str(nbrBits))
             paramsSecure.write('\\n')
+            paramsSecure.write('\\')
+            paramsSecure.write('\n')
             
             # Print to the user the number of the last estimation done
             print "estimate parameters ", i, " : done"
