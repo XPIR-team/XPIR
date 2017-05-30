@@ -17,10 +17,13 @@
 
 #include "NFLLWE.hpp"
 #include <fstream> 
-#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <unistd.h>
+
+#include "NFLLWESecurityEstimated.cpp"
+
 //#define bench
 //#define Repetition 10000
 
@@ -578,7 +581,7 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
     
     // We give a very small margin 59 instead of 60 so that 100:1024:60 passes the test
     //for (unsigned int i = 1; i * 59 <= p_size ; i++)//(p_size > 64) && ((p_size % 64) != 0))
-    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= 240; i++)
+    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= kMaxAggregatedModulusBitsize; i++) 
     {
       param =  cryptoName + ":" + to_string(estimateSecurity(degree,i*kModulusBitsize)) + ":" + to_string(degree) + ":" + to_string(i*kModulusBitsize) ;
       if (crypto_params.insert(param).second) params_nbr++;
@@ -609,16 +612,10 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 {
 	using namespace std;
 
-	// Find current path
-	char wd[256];  
-	getcwd( wd, 256 );  
-	string cwd = wd;
-	// Add necessary path to load the text that contains the security estimations
-	string pathData = cwd + "/../../../../security_estimator/security_estimations.txt";
-	// Open the text file containing the security estimations
-	ifstream estimations(pathData.c_str());
+	// Read the string that contains security parameters
+	istringstream estimations(securityParameters);
 
-	// Initilaze the vecotors that will contain XPIR parameters informations and the security number of bits
+	// Initilaze the vecotors that will contain XPIR parameters and the security number of bits
 	vector<unsigned int> nParameters;
 	vector<unsigned int> qParameters;
 	vector<unsigned int> nbrBits;
@@ -626,28 +623,24 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 	string line;
 	int i(0); 
 
-	// Read the file
+	// Read lines
 	while(getline(estimations,line)){
-		// We start to read at the fourth line		
-		if(i>=3){
-			// Find the two positions of ':' to split the line 			
-			int posPoint1=line.find(':',0);
-			int posPoint2=line.find(':',posPoint1+1);
+		
+		// Find the two positions of ':' to split the line 			
+		int posPoint1=line.find(':',0);
+		int posPoint2=line.find(':',posPoint1+1);
 			
-			// Add the n parameter to  the vector
-			unsigned int nData=atoi(line.substr(0,posPoint1).c_str());
-			nParameters.push_back(nData);
+		// Add the n parameter to  the vector
+		unsigned int nData=atoi(line.substr(0,posPoint1).c_str());
+		nParameters.push_back(nData);
 
-			// Add the q parameter to the vector
-			unsigned int qData=atoi(line.substr(posPoint1+1,posPoint2-(posPoint1+1)).c_str());
-			qParameters.push_back(qData);
+		// Add the q parameter to the vector
+		unsigned int qData=atoi(line.substr(posPoint1+1,posPoint2-(posPoint1+1)).c_str());
+		qParameters.push_back(qData);
 			
-			// Add the numer of bits to the vector
-			unsigned int nbrBitsData=atoi(line.substr(posPoint2+1,line.size()-(posPoint2+1)).c_str());
-			nbrBits.push_back(nbrBitsData);
-		}
-		// Increment i to know the current line
-		i++;
+		// Add the numer of bits to the vector
+		unsigned int nbrBitsData=atoi(line.substr(posPoint2+1,line.size()-(posPoint2+1)).c_str());
+		nbrBits.push_back(nbrBitsData);	
 	}
 	
 	
@@ -664,7 +657,6 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 
   return ++estimated_k;
 }
-
 
 long NFLLWE::setandgetAbsBitPerCiphertext(unsigned int elt_nbr)
 {
@@ -685,7 +677,7 @@ unsigned int NFLLWE::findMaxModulusBitsize(unsigned int k, unsigned int n)
 {
   unsigned int p_size;
   //p_size can not be too low
-  p_size = 60; //modif : p_size=10
+  p_size = 60;
   while (!checkParamsSecure(k,n,p_size)) p_size+=60;
 
   return --p_size;
