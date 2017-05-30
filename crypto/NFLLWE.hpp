@@ -38,6 +38,7 @@
 #include <string>
 #include <vector>
 #include <cstddef>
+#include <gmp.h>
 #include <unistd.h>
 
 
