@@ -22,8 +22,6 @@
 #include <string>
 #include <vector>
 #include <unistd.h>
-
-
 //#define bench
 //#define Repetition 10000
 
