@@ -16,13 +16,13 @@
 */
 
 #include "NFLLWE.hpp"
+#include "NFLLWESecurityEstimated.cpp"
 #include <fstream> 
 #include <sstream>
 #include <string>
 #include <vector>
 #include <unistd.h>
 
-#include "NFLLWESecurityEstimated.cpp"
 
 //#define bench
 //#define Repetition 10000
@@ -581,7 +581,7 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
     
     // We give a very small margin 59 instead of 60 so that 100:1024:60 passes the test
     //for (unsigned int i = 1; i * 59 <= p_size ; i++)//(p_size > 64) && ((p_size % 64) != 0))
-    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= kMaxAggregatedModulusBitsize; i++) 
+    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= kMaxAggregatedModulusBitsize; i++)
     {
       param =  cryptoName + ":" + to_string(estimateSecurity(degree,i*kModulusBitsize)) + ":" + to_string(degree) + ":" + to_string(i*kModulusBitsize) ;
       if (crypto_params.insert(param).second) params_nbr++;
@@ -615,7 +615,7 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 	// Read the string that contains security parameters
 	istringstream estimations(securityParameters);
 
-	// Initilaze the vecotors that will contain XPIR parameters and the security number of bits
+	// Initilaze vectors that will contain XPIR parameters and the security number of bits
 	vector<unsigned int> nParameters;
 	vector<unsigned int> qParameters;
 	vector<unsigned int> nbrBits;
