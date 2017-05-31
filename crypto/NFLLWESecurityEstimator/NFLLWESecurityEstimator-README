@@ -12,8 +12,16 @@ XPIR security estimator uses the 'Estimator for the Bit Security of LWE Instance
 
 To update the security values with the latest script developped by Martin Albrecht do :
    
+   ...
    cd $XPIR-DIRECTORY/crypto/NFLLWESecurityEstimator/lwe-estimator
    git pull 
    cd ..
    ./sage
    load ('NFLLWESecurityEstimator.py')
+   ...
+   
+   Next you should rebuild XPIR :
+      ...   
+      cd ../../_build
+      sudo make
+      ...
