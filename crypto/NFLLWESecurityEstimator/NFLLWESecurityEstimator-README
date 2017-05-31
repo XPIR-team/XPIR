@@ -8,10 +8,12 @@ Requirements:
     * git
 
 XPIR security estimator uses the 'Estimator for the Bit Security of LWE Instances' ('https://bitbucket.org/malb/lwe-estimator/src' ) developped by Martin Albrecht.
- ______________________________________________________________________________________________________________________________
-|                                                                                                                              |     
-| To have a better security  :                                                                                                 |
-| * in 'XPIR-master/crypto/NFLLWESecurityEstimator' directory do : 'git clone https://bitbucket.org/malb/lwe-estimator.git'    |
-| * run sage with './sage' and load 'NFLLWESecurityEstimator.py'                                                               |
-|                                                                                                                              |
- ------------------------------------------------------------------------------------------------------------------------------
+
+
+To update the security values with the latest script developped by Martin Albrecht do :
+   
+   cd $XPIR-DIRECTORY/crypto/NFLLWESecurityEstimator/lwe-estimator
+   git pull 
+   cd ..
+   ./sage
+   load ('NFLLWESecurityEstimator.py')
