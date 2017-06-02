@@ -22,3 +22,4 @@ To update the security values with the latest script developped by Martin Albrec
    
       cd ../../_build
       make
+      make check
