@@ -88,7 +88,7 @@ if (os.path.isfile(pathNFLParameters)):
     # Initialize the path of the NFLLWESecurityEstimated.hpp file
     pathNFLLWESecurityEstimatedHPP = pathScript + "/../NFLLWESecurityEstimated.hpp"
     
-    # Open NFLLWESecurityEstimated.cpp, if it does not exist, it will create it
+    # Open NFLLWESecurityEstimated.hpp, if it does not exist, it will create it
     paramsSecure = open(pathNFLLWESecurityEstimatedHPP, 'w')
     paramsSecure.write('#pragma once\n')
     paramsSecure.write("#include <string>\n")
@@ -141,5 +141,3 @@ if (os.path.isfile(pathNFLParameters)):
 else:
     # Error if XPIR file not found
     print "ERROR : XPIR files not found !"
-
-    
