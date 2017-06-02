@@ -16,7 +16,7 @@
 */
 
 #include "NFLLWE.hpp"
-#include "NFLLWESecurityEstimated.cpp"
+#include "NFLLWESecurityEstimated.hpp"
 #include <fstream> 
 #include <sstream>
 #include <string>
