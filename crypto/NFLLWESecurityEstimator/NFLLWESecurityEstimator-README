@@ -2,7 +2,7 @@ SECURITY ESTIMATOR
 ------------------
 
 Requirements: 
-    * SageMath available in 'http://www.sagemath.org/fr/index.html'
+    * SageMath available in 'http://www.sagemath.org/fr/index.html' and installed in '$XPIR-DIRECTORY/crypto/NFLLWESecurityEstimator'
     * python
     * python-numpy package
     * git
