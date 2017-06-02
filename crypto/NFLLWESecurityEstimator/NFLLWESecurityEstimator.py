@@ -83,30 +83,14 @@ if (os.path.isfile(pathNFLParameters)):
                 
                 # Set kMaxAggregatedModulusBitsize
                 kMaxAggregatedModulusBitsize = int(line[index1 + 2 : index2 - 1])
-     
+ 
     
     # Initialize the path of the NFLLWESecurityEstimated.hpp file
     pathNFLLWESecurityEstimatedHPP = pathScript + "/../NFLLWESecurityEstimated.hpp"
     
-    # Open NFLLWESecurityEstimated.hpp, if it does not exist, it will create it
-    paramsSecureHeader = open(pathNFLLWESecurityEstimatedHPP, 'w') 
-    
-    paramsSecureHeader.write("#include <string>\n")
-    paramsSecureHeader.write('\n')
-    paramsSecureHeader.write("using namespace std;\n")
-    paramsSecureHeader.write('\n')
-    paramsSecureHeader.write("extern string securityParameters;\n")
-
-    # Close the NFLLWESecurityEstimated.hpp file
-    paramsSecureHeader.close()
-    
-    # Initialize the path of the NFLLWESecurityEstimated.cpp file
-    pathNFLLWESecurityEstimatedCPP = pathScript + "/../NFLLWESecurityEstimated.cpp"
-    
     # Open NFLLWESecurityEstimated.cpp, if it does not exist, it will create it
-    paramsSecure = open(pathNFLLWESecurityEstimatedCPP, 'w')
-    paramsSecure.write('#include "NFLLWESecurityEstimated.hpp"\n')
-    paramsSecure.write('\n')
+    paramsSecure = open(pathNFLLWESecurityEstimatedHPP, 'w')
+    paramsSecure.write('#pragma once\n')
     paramsSecure.write("#include <string>\n")
     paramsSecure.write('\n')
     paramsSecure.write("using namespace std;\n")
@@ -121,21 +105,21 @@ if (os.path.isfile(pathNFLParameters)):
     for log2n in range(int(np.log2(kMinPolyDegree)), int(np.log2(kMaxPolyDegree)) + 1, 1):
         n = 2 ** log2n
         
-        # Scan q from kModulusBitsize to kMaxAggregatedModulusBitsize
-        for q in range(kModulusBitsize, kMaxAggregatedModulusBitsize + 1, 60):
+        # Scan log2q from kModulusBitsize to kMaxAggregatedModulusBitsize
+        for log2q in range(kModulusBitsize, kMaxAggregatedModulusBitsize + 1, 60):
             
             # Increment the number of estimations
             i += 1
             
             # Compute the number of bits for each parameters with the Martin Albrecht algortihm
-            security = estimate_lwe(n, RR(80 / RR((2 ** q)) ) , 2 ** q, skip=("mitm", "bkw", "arora-gb"))
+            security = estimate_lwe(n, RR(80 / RR((2 ** log2q)) ) , 2 ** log2q, skip=("mitm", "bkw", "arora-gb"))
             # Select the security and return the number of bits
             nbrBits = int(np.log2(min(security['sis']['bkz2'], security['dec']['bkz2'], security['kannan']['bkz2'])))
             
             # Write security parameters
             paramsSecure.write(str(n))
             paramsSecure.write(":")
-            paramsSecure.write(str(q))
+            paramsSecure.write(str(log2q))
             paramsSecure.write(":")
             paramsSecure.write(str(nbrBits))
             paramsSecure.write('\\n')
@@ -147,7 +131,7 @@ if (os.path.isfile(pathNFLParameters)):
             
             
     paramsSecure.write('";\n')
-    # Close the NFLLWESecurityEstimated.cpp file
+    # Close the NFLLWESecurityEstimated.hpp file
     paramsSecure.close()
     
     
@@ -157,3 +141,5 @@ if (os.path.isfile(pathNFLParameters)):
 else:
     # Error if XPIR file not found
     print "ERROR : XPIR files not found !"
+
+    
