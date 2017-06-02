@@ -634,7 +634,7 @@ unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 		unsigned int qData=atoi(line.substr(posPoint1+1,posPoint2-(posPoint1+1)).c_str());
 		qParameters.push_back(qData);
 			
-		// Add the numer of bits to the vector
+		// Add the number of bits to the vector
 		unsigned int nbrBitsData=atoi(line.substr(posPoint2+1,line.size()-(posPoint2+1)).c_str());
 		nbrBits.push_back(nbrBitsData);	
 	}
