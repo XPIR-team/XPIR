@@ -242,7 +242,7 @@ do
 	    fi
 
 	    # Test LWE
-	    for QP in "4096:180" "2048:120" "1024:60"
+	    for QP in "8192:60" "8192:120" "8192:180" "8192:240" "4096:60" "4096:120" "4096:180" "2048:60"
 	    #for QP in "180:73" "120:43" "60:13"
 	    do
 		#TODO use python to compute absorption #math.floor(($Q-math.ceil(math.log($SEC/2,2))-math.ceil(math.log($N,2))-math.ceil(math.log($DEG,2)))/2)

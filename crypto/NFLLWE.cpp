@@ -16,7 +16,12 @@
 */
 
 #include "NFLLWE.hpp"
+#include "NFLLWESecurityEstimated.hpp"
 #include <fstream> 
+#include <sstream>
+#include <string>
+#include <vector>
+#include <unistd.h>
 //#define bench
 //#define Repetition 10000
 
@@ -572,9 +577,7 @@ unsigned int NFLLWE::getCryptoParams(unsigned int k, std::set<std::string>& cryp
     string param;
     p_size = findMaxModulusBitsize(k, degree);
     
-    // We give a very small margin 59 instead of 60 so that 100:1024:60 passes the test
-    //for (unsigned int i = 1; i * 59 <= p_size ; i++)//(p_size > 64) && ((p_size % 64) != 0))
-    for (unsigned int i = 1; i * 59 <= p_size && i * 60 <= 240; i++)
+    for (unsigned int i = 1; i * kModulusBitsize <= p_size && i * kModulusBitsize <= kMaxAggregatedModulusBitsize; i++)
     {
       param =  cryptoName + ":" + to_string(estimateSecurity(degree,i*kModulusBitsize)) + ":" + to_string(degree) + ":" + to_string(i*kModulusBitsize) ;
       if (crypto_params.insert(param).second) params_nbr++;
@@ -603,13 +606,53 @@ void NFLLWE::recomputeNoiseAmplifiers() {
 
 unsigned int NFLLWE::estimateSecurity(unsigned int n, unsigned int p_size)
 {
-  unsigned int estimated_k = 5;//Estimate K can not be too low
+	using namespace std;
 
-  while(!checkParamsSecure(estimated_k,n,p_size)) estimated_k++; 
+	// Read the string that contains security parameters
+	istringstream estimations(securityParameters);
 
-  return --estimated_k;
+	// Initilaze vectors that will contain XPIR parameters and the security number of bits
+	vector<unsigned int> nParameters;
+	vector<unsigned int> qParameters;
+	vector<unsigned int> nbrBits;
+
+	string line;
+	int i(0); 
+
+	// Read lines
+	while(getline(estimations,line)){
+		
+		// Find the two positions of ':' to split the line 			
+		int posPoint1=line.find(':',0);
+		int posPoint2=line.find(':',posPoint1+1);
+			
+		// Add the n parameter to  the vector
+		unsigned int nData=atoi(line.substr(0,posPoint1).c_str());
+		nParameters.push_back(nData);
+
+		// Add the q parameter to the vector
+		unsigned int qData=atoi(line.substr(posPoint1+1,posPoint2-(posPoint1+1)).c_str());
+		qParameters.push_back(qData);
+			
+		// Add the number of bits to the vector
+		unsigned int nbrBitsData=atoi(line.substr(posPoint2+1,line.size()-(posPoint2+1)).c_str());
+		nbrBits.push_back(nbrBitsData);	
+	}
+	
+	
+	// Initialize the estimation at 0
+	unsigned int estimated_k(0);
+	
+	// Check all the n and q parmaters to find a correspondence with the inputs parameters
+	for(int i(0); i<nbrBits.size(); i++){
+		// Estimation takes the number of bits at the rank of the correspondence
+		if(n==nParameters[i] && p_size==qParameters[i]){
+			estimated_k=nbrBits[i];
+		}
+    	}
+
+  return estimated_k;
 }
-
 
 long NFLLWE::setandgetAbsBitPerCiphertext(unsigned int elt_nbr)
 {
@@ -630,28 +673,16 @@ unsigned int NFLLWE::findMaxModulusBitsize(unsigned int k, unsigned int n)
 {
   unsigned int p_size;
   //p_size can not be too low
-  p_size = 10;
-  while (!checkParamsSecure(k,n,p_size)) p_size++;
+  p_size = kModulusBitsize;
+  while (!checkParamsSecure(k,n,p_size)) p_size+=kModulusBitsize;
 
-  return --p_size;
+  return p_size-kModulusBitsize;
 }
 
 
 bool NFLLWE::checkParamsSecure(unsigned int k, unsigned int n, unsigned int p_size)
 {
-  double p, beta, logBerr = 8, epsi, lll;
-
-  //We take an advantage of 2**(-k/2) and an attack time of 2**(k/2)
-  epsi = pow(2, -static_cast<double>(k/2));
-  //log(time) = 1.8/ log(delta) − 110 and -80 to compute processor cycles so we take pow(2, k/2) = 1.8/log(delta) - 80
-  double delta = pow(2,1.8/(k/2 + 80));
-
-  p    = pow(2, p_size) -  1;
-  beta = (p / logBerr) * sqrt(log1p( 1 / epsi) / M_PI);
-  lll  = lllOutput(n, p, delta);
-
-  // We love ugly tricks !
-  return (lll < beta);// && cout << "beta : " << beta << " p_size : " << p_size << " n :"<< n << " k : "<< k << endl;
+  return (estimateSecurity(n,p_size)<=k);
 }
 
 

@@ -1,0 +1,25 @@
+SECURITY ESTIMATOR
+------------------
+
+Requirements: 
+    * SageMath available in 'http://www.sagemath.org/fr/index.html' and installed in '$XPIR-DIRECTORY/crypto/NFLLWESecurityEstimator'
+    * python
+    * python-numpy package
+    * git
+
+XPIR security estimator uses the 'Estimator for the Bit Security of LWE Instances' ('https://bitbucket.org/malb/lwe-estimator/src' ) developped by Martin Albrecht.
+
+
+To update the security values with the latest script developped by Martin Albrecht do :
+   
+   cd $XPIR-DIRECTORY/crypto/NFLLWESecurityEstimator/lwe-estimator
+   git pull 
+   cd ..
+   ./sage
+   load ('NFLLWESecurityEstimator.py')
+   
+   Next you should rebuild XPIR :
+   
+      cd ../../_build
+      make
+      make check
