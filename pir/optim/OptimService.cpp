@@ -35,18 +35,6 @@ const std::string OptimService::getCurrentTime()
     return buf;
 }
 
-void OptimService::getAllOptimData(std::vector<FixedVars>& fixed_vars_vec, std::string testValuesFileName)
-{
-  unsigned int experience_nbr = getNumberOfExperiences(testValuesFileName);
-
-  for(unsigned int i = 0 ; i < experience_nbr ; i++)
-  {
-    FixedVars vars;
-    readTestValues(i, vars, testValuesFileName);
-    fixed_vars_vec.push_back(vars);
-  }
-}
-
 int OptimService::getNumberOfExperiences(std::string testValuesFileName)
 {
   std::string line;
@@ -167,26 +155,6 @@ void OptimService::writeTestCurrentResult(unsigned int alpha_min, unsigned int a
   file.close();
 }
 
-int OptimService::writeOptimData(double encrypt_time, double decrypt_time, std::string crypto_params_desc, std::string crypto_name)
-{
-  std::ofstream	fdec(folderName + fileName + crypto_name + decFileExtension, ios::app);
-  std::ofstream fenc(folderName + fileName + crypto_name + encFileExtension, ios::app);
-  fdec.setf( std::ios::fixed, std:: ios::floatfield );
-  fenc.setf( std::ios::fixed, std:: ios::floatfield );
-
-  if (!fdec.good() || !fenc.good()) 
-  {
-    fenc.close();
-    fdec.close();
-    return 1;
-  }
-
-  fenc << crypto_params_desc << " " << encrypt_time << std::endl;
-  fdec << crypto_params_desc << " " << decrypt_time << std::endl;
-
-  return 0;
-}
-
 int OptimService::writeOptimDataBuffer(const std::string& buffer, const std::string& file_path)
 {
   std::ofstream	f(file_path);
@@ -203,19 +171,6 @@ int OptimService::writeOptimDataBuffer(const std::string& buffer, const std::str
   return 0;
 }
 
-
-void OptimService::gotoLine(std::ifstream& file, unsigned int num)
-{
-  if (num > 0)
-  {
-    file.seekg(std::ios::beg);
-
-    for (unsigned int i = 0 ; i < num ; ++i)
-    {
-      file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
-    }
-  }
-}
 
 void OptimService::writeFootFile(unsigned int i)
 {  
@@ -254,46 +209,6 @@ void OptimService::writeConfigFile(unsigned int alpha, unsigned int alphaMul, un
   file << "alphaM\t" << alphaMul << endl;
 
   file.close();
-}
-
-void OptimService::writeLWEFile(unsigned int order, unsigned int p_size, unsigned int exp_nbr)
-{
-  std::ofstream file(std::string("LWEFile" + std::to_string(exp_nbr)).c_str(), std::ios::out);
-
-  file << "degree\t" << order  << endl;
-  file << "p_size\t" << p_size  << endl;
-
-  file.close();
-}
-
-// Ugly test can cause segfault if file is somehow too big
-// Should try to build a cache dictionary and test whether the
-// desired crypto_params have been filled
-int OptimService::verifyOptimData(set<string> crypto_params_set, const std::string& fenc_path, const std::string& fdec_path)
-{
-  string line_dec, line_enc;
-  unsigned int params_nbr = crypto_params_set.size();
-  int return_value = 1;
-  std::ifstream	fdec(fenc_path);
-  std::ifstream fenc(fdec_path);
-
-  if (!fenc.is_open() || !fdec.is_open()) 
-  {
-    return 0;
-  }
-  if(getNumberOfLines(fdec) < params_nbr || getNumberOfLines(fenc) < params_nbr)
-  {
-    fdec.close();
-    fenc.close();
-    std::ofstream fdec_in(fdec_path);
-    std::ofstream fenc_in(fenc_path);
-    fdec_in.close();
-    fdec_in.close();
-    return_value = 0;
-  }
-  fdec.close();
-  fenc.close();
-  return return_value;
 }
 
 unsigned int OptimService::getNumberOfLines(std::ifstream& f)

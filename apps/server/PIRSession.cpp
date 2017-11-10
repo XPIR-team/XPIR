@@ -382,9 +382,6 @@ void PIRSession::startProcessQuery ()
 /**
  * Recieve queries n messages with n = nbr of files.
  **/
-void blo(const boost::system::error_code& err) {
-  std::cout <<"rec "<<omp_get_wtime()<<std::endl;
-}
 void PIRSession::downloadWorker()
 {
   double start = omp_get_wtime();

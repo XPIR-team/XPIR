@@ -139,19 +139,6 @@ uint64_t DESC::getFileSize(uint64_t index)
 }
 
 /**
- *	Checks whether the provided file number exists. 
- *	Param : 
- *		- int dex : file index.
- *
- *	Return :
- *		- bool : true if file exist, false else.
- **/
-bool DESC::file_exists (uint64_t index) 
-{
-	return (index < nbFiles) ? true : false; 
-}
-
-/**
  *	Get number of files.
  *	Return :
  *		- unsigned int : number of files.

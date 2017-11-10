@@ -59,10 +59,6 @@ public:
     virtual ~HomomorphicCrypto();
     
     double estimatePrecomputeTime(std::string crypto_param) { return 0;}
-	uint64_t getCiphertextBytesize() {
-		return 	getPublicParameters().getQuerySizeFromRecLvl(0) / 8;
-
-	}
     std::string& toString() { return cryptoName;}
 };
 

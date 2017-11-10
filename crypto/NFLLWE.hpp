@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "NFLParams.hpp"
 #include "NFLlib.hpp"
 #include "NFLLWEDatatypes.hpp"
@@ -34,8 +36,10 @@
 #include "CryptographicSystem.hpp"
 #include "NFLLWEPublicParameters.hpp"
 #include <string>
+#include <vector>
 #include <cstddef>
 #include <gmp.h>
+#include <unistd.h>
 
 class NFLLWE : public LatticesBasedCryptosystem
 {
