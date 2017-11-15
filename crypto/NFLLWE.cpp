@@ -310,7 +310,7 @@ void  NFLLWE::enc(lwe_cipher *c, poly64 m)
 			//std::cout << std::hex << tmpb[i] << " " << std::dec;			
 				
 			tmpb[i] = nflInstance.mulmodShoup(tmpb[i], Abit_mod[currentModulus],Abit_mod_shoup[currentModulus], moduli[currentModulus]);
-      
+			
 			// and shifted to be in [-(Berr-1) .. (Berr-1)]
 			//tmpb[i] += moduli[currentModulus]-((Berr-1)<<A_bits);   
 
@@ -594,7 +594,7 @@ void NFLLWE::recomputeNoiseAmplifiers() {
 	mpz_init(tmpz1);
 	mpz_init(tmpz2);
 	for(unsigned short currentModulus=0;currentModulus<nbModuli;currentModulus++) {
-		mpz_ui_pow_ui(tmpz2, 2, A_bits);
+		mpz_ui_pow_ui(tmpz1, 2, A_bits);
 		mpz_import(tmpz2, 1, 1, sizeof(uint64_t), 0, 0, moduli+currentModulus);
 		mpz_mod(tmpz1, tmpz1, tmpz2);
 		Abit_mod[currentModulus]=0;
