@@ -435,7 +435,6 @@ void PIRSession::downloadWorker()
           previous_elts = 0;
           for (unsigned int k = 0 ;  k < j ; k++) previous_elts += pirParam.n[k];
           std::cout <<"PIRSession: Query element " << i+1+previous_elts << "/" << total_elts << " received\r" << std::flush;
-          wasVerbose = true;
         }
 #endif
         
@@ -513,7 +512,7 @@ void PIRSession::uploadWorker()
   unsigned int byteSize = cryptoMethod->getPublicParameters().getCiphBitsizeFromRecLvl(pirParam.d)/GlobalConstant::kBitsPerByte;
   uint64_t totalbytesent=0;
   // Number of ciphertexts in the reply
-  unsigned long reply_nbr = generator->computeReplySizeInChunks(maxFileBytesize), i = 0;
+  unsigned long reply_nbr = generator->computeReplySizeInChunks(maxFileBytesize);
 #ifdef DEBUG
   cout << "PIRSession: Number of ciphertexts to send is " << reply_nbr << endl;
   cout << "PIRSession: maxFileBytesize is  " << maxFileBytesize << endl;
