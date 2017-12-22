@@ -73,11 +73,11 @@ uint64_t DBGenerator::getmaxFileBytesize() {
 	return maxFileBytesize;
 }
 
-std::ifstream* DBGenerator::openStream(uint64_t streamNb, uint64_t requested_offset) {
-	return NULL;
+bool DBGenerator::openStream(uint64_t streamNb, uint64_t requested_offset) {
+	return true;
 }
 
-uint64_t DBGenerator::readStream(std::ifstream* s, char * buf, uint64_t size) {
+uint64_t DBGenerator::readStream(uint64_t streamNb, char * buf, uint64_t size) {
   //for (unsigned char i = 0xaa, j = 0; j < size; i++, j++)
   //{
   //  buf[j] = i;
@@ -94,10 +94,10 @@ uint64_t DBGenerator::readStream(std::ifstream* s, char * buf, uint64_t size) {
   return size;
 }
 
-void DBGenerator::closeStream(std::ifstream* s) {}
+void DBGenerator::closeStream(uint64_t streamNb) {}
 
 void DBGenerator::readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits){
-  readStream(NULL, NULL, 0);
+  readStream(0, 0, 0);
 	uint64_t fileByteSize = std::min(bytes_per_file, maxFileBytesize-offset);
   uint64_t startStream = streamNb*alpha;
   uint64_t endStream = std::min(streamNb*alpha + alpha - 1, getNbStream() - 1);

@@ -36,10 +36,10 @@ public:
   uint64_t getNbStream();
   uint64_t getmaxFileBytesize();
   
-  std::ifstream* openStream(uint64_t streamNb, uint64_t requested_offset);
-  uint64_t readStream(std::ifstream* s, char * buf, uint64_t size);
+  bool openStream(uint64_t streamNb, uint64_t requested_offset);
+  uint64_t readStream(uint64_t streamNb, char * buf, uint64_t size);
   void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits);
-  void closeStream(std::ifstream* s);
+  void closeStream(uint64_t streamNb);
   
 private:
   std::mt19937_64 random_engine; // Fixed seed of 0
