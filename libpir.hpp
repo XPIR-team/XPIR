@@ -11,6 +11,7 @@
 #include <crypto/HomomorphicCrypto.hpp>
 #include "pir/dbhandlers/DBGenerator.hpp"
 #include "pir/dbhandlers/DBDirectoryProcessor.hpp"
+#include "pir/dbhandlers/DBVectorProcessor.hpp"
 #include <stdint.h>
 
 

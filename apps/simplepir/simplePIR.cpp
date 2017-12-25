@@ -211,7 +211,7 @@ int main(int argc, char * argv[]) {
 
   // Simple test
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 1/7: database_size = 1ULL<<30; nb_files = 20;" << std::endl;
+  std::cout << "Test 1/9: database_size = 1ULL<<30; nb_files = 20;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<20; nb_files = 20; maxFileBytesize = database_size/nb_files;
@@ -228,7 +228,7 @@ int main(int argc, char * argv[]) {
   // WARNING we must provide the representation of the database GIVEN recursion and aggregation
   // as here we have 100 elements and aggregate them in a unique group we have params.n[0]=1
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 2/7: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
+  std::cout << "Test 2/9: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
   std::cout << "params.alpha = 100; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
@@ -240,7 +240,7 @@ int main(int argc, char * argv[]) {
 
   // Test with recursion 2
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 3/7: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
+  std::cout << "Test 3/9: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 2; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
@@ -252,7 +252,7 @@ int main(int argc, char * argv[]) {
   
   // Test with recursion 2 and aggregation
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 4/7: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
+  std::cout << "Test 4/9: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
   std::cout << "params.alpha = 2; params.d = 2; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
@@ -264,7 +264,7 @@ int main(int argc, char * argv[]) {
   
   // Test with recursion 3
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 5/7: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
+  std::cout << "Test 5/9: database_size = 1ULL<<25; nb_files = 100;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 3; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 100; maxFileBytesize = database_size/nb_files;
@@ -276,7 +276,7 @@ int main(int argc, char * argv[]) {
   
   // Test with a DBDirectoryProcessor splitting a big real file
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 6/7: DBDirectoryProcessor with split; database_size = 1ULL<<25; nb_files = 4;" << std::endl;
+  std::cout << "Test 6/9: DBDirectoryProcessor with split; database_size = 1ULL<<25; nb_files = 4;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   database_size = 1ULL<<25; nb_files = 4; maxFileBytesize = database_size/nb_files;
@@ -292,7 +292,7 @@ int main(int argc, char * argv[]) {
   
   // Test with a DBDirectoryProcessor reading real files
   std::cout << "======================================================================" << std::endl;
-  std::cout << "Test 7/7: DBDirectoryProcessor without split;" << std::endl;
+  std::cout << "Test 7/9: DBDirectoryProcessor without split;" << std::endl;
   std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl; 
   std::cout << "======================================================================" << std::endl;
   DBDirectoryProcessor db7;
@@ -306,6 +306,42 @@ int main(int argc, char * argv[]) {
     params.crypto_params = "LWE:80:2048:120";
     tests_failed |= run(&db7, chosen_element, params);
   }
+
+  // Test with a DBVectorProcessor
+  std::cout << "======================================================================" << std::endl;
+  std::cout << "Test 8/9: DBVectorProcessor;" << std::endl;
+  std::cout << "params.alpha = 1; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl;
+  std::cout << "======================================================================" << std::endl;
+  std::vector<element_t> elements1;
+  elements1.push_back(Element("first file", 10, (char*) "first data"));
+  elements1.push_back(Element("second file", 11, (char*) "second data"));
+  elements1.push_back(Element("third file", 8, (char*) "3rd data"));
+
+  DBVectorProcessor db8(elements1);
+
+  chosen_element = 0;
+  params.alpha = 1; params.d = 1;
+  params.crypto_params = "LWE:80:2048:120";
+  tests_failed |= run(&db8, chosen_element, params);
+
+  // Test with a DBVectorProcessor
+  std::cout << "======================================================================" << std::endl;
+  std::cout << "Test 9/9: DBVectorProcessor;" << std::endl;
+  std::cout << "params.alpha = 2; params.d = 1; crypto_params = LWE:80:2048:120;" << std::endl;
+  std::cout << "======================================================================" << std::endl;
+  std::vector<element_t> elements2;
+  elements2.push_back(Element("first file", 10, (char*) "first data"));
+  elements2.push_back(Element("second file", 11, (char*) "second data"));
+  elements2.push_back(Element("third file", 8, (char*) "3rd data"));
+  elements2.push_back(Element("fourth file", 14, (char*) "fourth db data"));
+  elements2.push_back(Element("fifth file", 13, (char*) "fifth db data"));
+
+  DBVectorProcessor db9(elements2);
+
+  chosen_element = 0;
+  params.alpha = 2; params.d = 1;
+  params.crypto_params = "LWE:80:2048:120";
+  tests_failed |= run(&db8, chosen_element, params);
 
   if (tests_failed) 
   {
