@@ -58,7 +58,6 @@ public:
   
   bool openStream(uint64_t streamNb, uint64_t requested_offset);
   uint64_t readStream(uint64_t streamNb, char * buf, uint64_t size);
-  void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits);
   void closeStream(uint64_t streamNb);
   
   

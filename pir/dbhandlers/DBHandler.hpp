@@ -21,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <string.h>
 
 class DBHandler
 {
@@ -35,7 +36,7 @@ public:
   
   virtual bool openStream(uint64_t streamNb, uint64_t requested_offset)=0;
   virtual uint64_t readStream(uint64_t streamNb, char * buf, uint64_t size)=0;
-  virtual void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits)=0;
+  virtual void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits);
   virtual void closeStream(uint64_t streamNb)=0;
   virtual ~DBHandler(){};
   
