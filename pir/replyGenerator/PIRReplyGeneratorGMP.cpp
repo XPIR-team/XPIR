@@ -50,12 +50,12 @@ void PIRReplyGeneratorGMP::importData()
 	{
 		if (i % pirParam.alpha == 0) datae[i/pirParam.alpha] = new mpz_t[maxChunkSize*pirParam.alpha];
 
-    ifstream* stream=dbhandler->openStream(i, 0);
+    dbhandler->openStream(i, 0);
 
     // For each chunk of size "size" of the file
 		for (unsigned int j = 0 ; j < maxChunkSize ; j++ )
 		{
-			dbhandler->readStream(stream,rawBits, size);
+			dbhandler->readStream(i ,rawBits, size);
 			mpz_init(datae[i/pirParam.alpha][j + (i % pirParam.alpha) * maxChunkSize]);
 			mpz_import(datae[i/pirParam.alpha][j + (i % pirParam.alpha) * maxChunkSize], size, 1, sizeof(char), 0, 0, rawBits);
 		}
@@ -67,7 +67,7 @@ void PIRReplyGeneratorGMP::importData()
 			mpz_init_set_ui(datae[i/pirParam.alpha][j + ((i+1) % pirParam.alpha) * maxChunkSize], 0);
       }
     }
-		dbhandler->closeStream(stream);
+		dbhandler->closeStream(i);
 	}
 
   std::cout << "PIRReplyGeneratorGMP: " << pirParam.alpha*theoretic_nbr_elements - nbFiles << "  non-aggregated padding files need to be added ..." << std::endl;

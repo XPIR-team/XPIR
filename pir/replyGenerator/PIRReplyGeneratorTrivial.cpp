@@ -68,9 +68,9 @@ void PIRReplyGeneratorTrivial::importData()
 	//pour tous les fichiers.
 	for (unsigned int i = 0 ; i < dbhandler->getNbStream() ; i++)
 	{
-    ifstream* stream = dbhandler->openStream(i, 0);
-	  dbhandler->readStream(stream, dataptr, maxFileBytesize);
-		dbhandler->closeStream(stream);
+    dbhandler->openStream(i, 0);
+	  dbhandler->readStream(i, dataptr, maxFileBytesize);
+		dbhandler->closeStream(i);
     dataptr += maxFileBytesize;
 	}
 

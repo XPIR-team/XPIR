@@ -23,6 +23,7 @@
 #include <boost/thread.hpp>
 #include <dirent.h>
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -37,7 +38,7 @@ class DBDirectoryProcessor : public DBHandler
 private:
 	boost::mutex mutex;
   std::string directory;
-  std::vector<std::ifstream*> fdPool; // a pool of file descriptors
+  std::map<uint64_t, std::ifstream*> fdPool; // a pool of file descriptors
   std::vector <std::string> file_list; // the output file list
   bool filesSplitting;
   bool error = false;
@@ -55,10 +56,9 @@ public:
   uint64_t getmaxFileBytesize();
   bool getErrorStatus();
   
-  std::ifstream* openStream(uint64_t streamNb, uint64_t requested_offset);
-  uint64_t readStream(std::ifstream* s,char * buf, uint64_t size);
-  void readAggregatedStream(uint64_t streamNb, uint64_t alpha, uint64_t offset, uint64_t bytes_per_file, char* rawBits);
-  void closeStream(std::ifstream* s);
+  bool openStream(uint64_t streamNb, uint64_t requested_offset);
+  uint64_t readStream(uint64_t streamNb, char * buf, uint64_t size);
+  void closeStream(uint64_t streamNb);
   
   
 	std::streampos getFileSize( std::string filePath );
