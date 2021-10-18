@@ -341,7 +341,7 @@ int main(int argc, char * argv[]) {
   chosen_element = 0;
   params.alpha = 2; params.d = 1;
   params.crypto_params = "LWE:80:2048:120";
-  tests_failed |= run(&db8, chosen_element, params);
+  tests_failed |= run(&db9, chosen_element, params);
 
   if (tests_failed) 
   {
