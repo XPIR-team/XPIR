@@ -38,7 +38,7 @@ Requirements:
 - Apple OSX: [Xcode](https://itunes.apple.com/fr/app/xcode/id497799835?mt=12), [Xcode Command Line Tools](https://developer.apple.com/library/ios/technotes/tn2339/_index.html) and [MacPorts](https://www.macports.org/install.php).
 
 Get a copy of the project with:
-- git clone git@github.com:XPIR-team/XPIR.git
+- ```git clone git@github.com:XPIR-team/XPIR.git```
 - or by downloading from https://github.com/XPIR-team/XPIR/archive/master.zip
 
 *On OSX only*, execute the following commands (due to avx optimization issues using clang-3.6 is mandatory):
@@ -54,6 +54,7 @@ sudo port select clang mp-clang-3.6
 
 You need cmake, GMP (version 6) Mpfr (version 3.1.2), and some boost modules (atomic, chrono, date_time, exception, program_options, regex, system, thread, all in version 1.55.0) to build XPIR. You can install them by yourself on your system (if you know how to do it this will be the fastest option). You can also use the (slower but safer) script helper_script.sh that is in the root directory of the repository to retrieve the exact versions and compile them in a local directory (namely ./local/). If two versions of the required libraries exist (one local and one system-wide) the local will be taken preferently.
 
+*On OSX only*, using the helper_script is recommended as installing BOOST manually requires to circumvect some problems. Alternatives are discussed [here](#Boost-Installation-Alternatives-for-OSX).
 
 To build, and test XPIR, run the following:
 
@@ -77,7 +78,7 @@ The following CMake options are relevant:
 
 Option                             | Description
 -----------------------------------|---------------------------------
-`-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if |catalog|<1000)
+`-DSEND_CATALOG=OFF`               | Do not send the catalog to client (default is send catalog if \|catalog\|<1000)
 `-DMULTI_THREAD=OFF`               | Do not use multi-threading
 `-DPERF_TIMERS=OFF`                | Do not show performance measurements during execution
 `-DCMAKE_BUILD_TYPE=Debug`         | Add debugging options and remove optimization
@@ -90,8 +91,13 @@ Besides a client and a server that can be used as standalone applications to do 
 
 A simple demonstration of how to use this API to build PIR protocols is available on the source tree at apps/simplepir/simple_pir.cpp. It can be run from apps/simplepir in the build tree.
 
-In order to compile a PIR protocol using the API, such as simplepir, one just need the library (either static or dynamic) and the includes. And compiling can be done with something like :
-g++ -std=c++11 simplePIR.cpp -I$include_dir -L$lib_dir -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system
+In order to compile a PIR protocol using the API, such as simplepir, one just needs the library (either static or dynamic). Compiling can be done with something like :
+`g++ -std=c++11 simplePIR.cpp -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system`.
+
+If you used the helper script to install the dependencies, you may need to add some lib and include dirs `g++ -std=c++11 simplePIR.cpp -I$include_dir -L$lib_dir -lpir_static -lgmp -lmpfr -fopenmp -lboost_thread -lboost_system` include_dir and lib_dir pointing to the place where helper_script installed the libraries (typically ./local/include and ./local/lib).
+
+*On OSX only*, if you used the helper script (recommended install), your DYLD_LIBRARY_PATH needs to point to the lib_dir :
+```export DYLD_LIBRARY_PATH=$PATH_TO_XPIR/local/lib:$DYLD_LIBRARY_PATH```
 
 Usage of the client/server apps:
 ================================
@@ -211,6 +217,16 @@ Set fitness method to:
 2=CLOUD Dollars in a cloud model (see source code)
 This sets the target function of the optimizer. When studying the different parameters the optimizer will choose the one that minimizes this function. 0 corresponds to minimizing the resources spent, 1 to minimizing the round-trip time (given that server operations have are pipelined and client operations are also, independently, pipelined), 2 corresponds to minimizing the cost by associating CPU cycles and bits transmitted to money using a cloud computing model.
 
+Boost Installation Alternatives for OSX:
+========================================
+
+The RECOMMENDED way to install boost for XPIR is the helper script. It is possible to install it with port or brew but some problems need to be circumvected and this is not supported. Indeed, there is an issue between clang-compiled libraries and gcc-compiled binaries (and vice-versa) - see http://stackoverflow.com/questions/19912862/compiling-boostprogram-options-on-mac-os-x-with-g-4-8-mac-ports for more details. Since XPIR is compiled with gcc, it must be linked with gcc-compiled boost libraries or you'll get link-errors.
+
+If you use macport, you can enforce compilation with gcc by using commands like ```port upgrade --force boost configure.compiler=macports-gcc-4.8``` (or gcc-4.8, or gcc-6.5.9-alpha for example) - and modifying the main CMakeLists.txt with a `set(BOOST_ROOT "your_boost_directory")`.
+
+If you use brew, you need to modify your formula in order to compile with gcc by following these advices : https://solarianprogrammer.com/2016/03/06/compiling-boost-gcc-5-clang-mac-os-x/ and also modifying CMakeLists.txt to reflect the boost installation path. 
+
+Again, these alternatives are error prone and NOT supported. If the user wants to try anyway see the discussion in this [issue](https://github.com/XPIR-team/XPIR/issues/21).
 
 Contributors:
 =============

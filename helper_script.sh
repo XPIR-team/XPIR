@@ -16,7 +16,7 @@
 # *  along with XPIR.  If not, see <http://www.gnu.org/licenses/>.
 #*/
 
-wget --no-check-certificate https://github.com/XPIR-team/XPIR-dependencies/raw/master/dependencies.tgz
+curl -kLO https://github.com/XPIR-team/XPIR-dependencies/raw/master/dependencies.tgz
 tar zxf dependencies.tgz
 rm dependencies.tgz
 mkdir local
@@ -31,10 +31,12 @@ CONFIGURE="./configure CFLAGS=-I$PWD/local/include LDFLAGS=-L$PWD/local/lib --pr
   # Boostrap the build module
   cd dependencies/boost; 
   ./bootstrap.sh
-   ./bjam --prefix=$LOCAL_PATH install 
+   ./bjam dll-path=$LOCAL_PATH --prefix=$LOCAL_PATH install 
   if [ `uname` = "Darwin" ]
     then 
 	cd ../../local/lib/
-	install_name_tool -change libboost_system.dylib `pwd`/libboost_system.dylib libboost_thread.dylib
+	install_name_tool -change libboost_system.dylib @rpath/libboost_system.dylib libboost_thread.dylib
+	install_name_tool -change libboost_system.dylib @rpath/libboost_system.dylib libboost_chrono.dylib
+	for i in libboost*.dylib ; do install_name_tool -id @rpath/$i $i;done
   fi
   cd ../..
